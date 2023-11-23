@@ -1,0 +1,1 @@
+XREADGROUP GROUP Group1 Consumer1 COUNT 1 STREAMS TestStream

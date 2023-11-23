@@ -1,0 +1,41 @@
+using Workbook wb = new();
+wb.LoadFromFile(file);
+using Worksheet worksheet = wb.Worksheets[0];
+// Get the cell range containing data
+CellRange locatedRange = worksheet.AllocatedRange;
+
+// 先获取第一行的所有列名称
+List<string> fieldNames = new();
+// 获取excel第一行所有字段名称
+for (int i = 0; i < locatedRange.Rows[0].ColumnCount; i++)
+{
+    var fieldName = locatedRange[1, i + 1].Value;
+    fieldNames.Add(fieldName);
+
+    // 索引从1开始; 工号,手机号的列可能是默认是数字格式, 列宽太小会变成科学计数法损失精度
+    worksheet.AutoFitColumn(i + 1);
+}
+
+            List<DynamicParameters> recordParametersList = new();
+
+            // 从第二行开始读取数据 - 为每一条数据构建参数对象DynamicParameters
+                        for (int i = 1; i < locatedRange.Rows.Length; i++)
+            {
+                var recordParameters = new DynamicParameters();
+
+                recordParameters.Add("GUID", XGuidHelper.GetDateGuid("yyyyMMddHHmmss"));
+
+                for (int j = 0; j < locatedRange.Rows[i].ColumnCount; j++)
+                {
+                    var value = locatedRange[i + 1, j + 1].Value;
+                    var field = indexAndFormItemMap[j];
+                    object dbValue = value;
+                    if (field.ControlType == "datebox")
+                    {
+                        dbValue = Convert.ToDateTime(value);
+                    }
+
+                    recordParameters.Add(field.Code, dbValue);
+                }
+                recordParametersList.Add(recordParameters);
+            }

@@ -1,0 +1,11 @@
+builder.Services.AddAuthorization(config =>
+{
+    config.AddPolicy("sfapi.2", policyBuilder =>
+    {
+        policyBuilder.RequireScope("sfapi2");
+    });
+    config.AddPolicy("sfapi.3", policyBuilder =>
+    {
+        policyBuilder.RequireScope("sfapi3");
+    });
+});

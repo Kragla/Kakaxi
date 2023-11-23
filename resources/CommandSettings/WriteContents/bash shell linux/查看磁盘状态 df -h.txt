@@ -1,0 +1,1 @@
+du -h # du -h /path/to/directory

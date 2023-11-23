@@ -1,0 +1,1 @@
+<button type="button" class="btn btn-primary btn-sm mt-1" data-bs-toggle="collapse" href="#collapse${tableId}{{id}}" role="button" aria-expanded="true" aria-controls="collapse${tableId}{{id}}">关联信息</button>

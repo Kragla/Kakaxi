@@ -1,0 +1,1 @@
+docker cp /usr/local/somefilt.txt 容器名:/usr/local/somefile.json

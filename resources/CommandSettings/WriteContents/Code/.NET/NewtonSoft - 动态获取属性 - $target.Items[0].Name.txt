@@ -1,0 +1,78 @@
+// "$target.Users[1].Name"
+	//var target = new Department{
+	//	Id = 1,
+	//	Name = "研发部门",
+	//    Users = new List<UserInfo> {
+	//		new UserInfo { Id = 1, Name = "张三", Age = 22, Birthday = new DateTime(2022, 07, 22) },
+	//		new UserInfo { Id = 2, Name = "里斯", Age = 23, Birthday = new DateTime(2021, 07, 22) },
+	//		new UserInfo { Id = 3, Name = "王五", Age = 24, Birthday = new DateTime(2020, 07, 22) },
+	//	}
+	//};
+	
+	var target = new List<Department> {
+		new Department{
+				Id = 1,
+				Name = "研发部门",
+				Users = new List<UserInfo> {
+					new UserInfo { Id = 1, Name = "张三", Age = 22, Birthday = new DateTime(2022, 07, 22) },
+					new UserInfo { Id = 2, Name = "里斯", Age = 23, Birthday = new DateTime(2021, 07, 22) },
+					new UserInfo { Id = 3, Name = "王五", Age = 24, Birthday = new DateTime(2020, 07, 22) },
+			}
+		}
+	};
+	// 要解析的动态表达式
+	string targetPropName = "$target[0].Users[1].Name";
+	
+
+	
+	IEnumerable<JProperty> targetProps = null;
+	JProperty updatingProp = null;
+	
+	var datasourceMatch = Regex.Match(targetPropName, @"(?<datasource>\$target)(\[(?<index>\d+)\]){0,1}");
+	string datasourceId = datasourceMatch.Groups["datasource"].Value;
+	string datasourceIndex = datasourceMatch.Groups["index"].Value;
+	
+	if (JToken.FromObject(target).Type == JTokenType.Array && string.IsNullOrWhiteSpace(datasourceIndex))
+	{
+		datasourceIndex = "0";
+	}
+	if (!string.IsNullOrWhiteSpace(datasourceIndex))
+	{
+		targetProps = (JArray.FromObject(target)[Convert.ToInt32(datasourceIndex)] as JObject)?.Properties();
+	}
+	else
+	{
+		targetProps = JObject.FromObject(target).Properties();
+	}
+	targetPropName = targetPropName.Replace(datasourceMatch.Value, "").Trim('.');
+
+	var propStatementParts = targetPropName.Split('.');
+	if (propStatementParts.Length > 1)
+	{
+		var targetToken = JToken.FromObject(target);
+		JToken lastPropValue = null;
+		foreach (var childPropStatementPart in propStatementParts)
+		{
+			if (lastPropValue is not null)
+			{
+				targetProps = (lastPropValue as JObject).Properties();
+			}
+			var match = Regex.Match(childPropStatementPart, @"(?<propName>\w+)(\[(?<propChildrenIndex>\d+)\]){0,1}");
+			var propName = match.Groups["propName"].Value;
+			var propChildrenIndex = match.Groups["propChildrenIndex"].Value;
+			
+			updatingProp = targetProps.FirstOrDefault(x => x.Name.ToLower() == propName.ToLower());
+			if (updatingProp is null)
+			{
+				throw new Exception($"没有找到{propName}");
+			}
+			lastPropValue = updatingProp.Value;
+			if (int.TryParse(propChildrenIndex, out int index))
+			{
+				lastPropValue = (updatingProp.Value as JArray)[index];
+			}
+		}
+	}
+	
+	updatingProp ??= targetProps.FirstOrDefault(p => p.Name.ToLower() == targetPropName);
+	Console.WriteLine(updatingProp.Value);

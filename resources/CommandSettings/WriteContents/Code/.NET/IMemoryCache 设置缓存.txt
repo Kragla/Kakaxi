@@ -1,0 +1,3 @@
+# 如果要缓存集合类型的数据, 第一次会并发创建此集合; 所以需要避免并发时创建集合, 可以在应用程序启动时就初始化好此集合;(这种好像只是存储, 而不是缓存的正确用法)
+var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(3));
+_memoryCache.Set(key, data, cacheEntryOptions);

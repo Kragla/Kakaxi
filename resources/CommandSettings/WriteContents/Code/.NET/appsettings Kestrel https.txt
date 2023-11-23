@@ -1,0 +1,21 @@
+"Kestrel": {
+        "Endpoints": {
+          "Http": {
+            "Url": "http://*:4510"
+          },
+          "HttpsInlineCertFile": {
+            "Url": "https://*:443",
+            "SslProtocols": [
+              "Tls12",
+              "Tls13"
+            ],
+            "Certificate": {
+              "AllowInvalid": true,
+            //   "Path": "_.wzu.edu.cn.pfx",
+            //   "Password": "kean1855"
+              "Path": "www.396buyu.com.pfx",
+              "Password": "123456"
+            }
+          }
+        }
+      },

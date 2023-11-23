@@ -1,0 +1,5 @@
+if (response && response.isSuccess) {
+    showMsgBox('操作成功', () => table.loadData());
+} else {
+    showErrorBox(response.errMsg, '错误提示', [{ class: 'error', content: '关闭' }]);
+}

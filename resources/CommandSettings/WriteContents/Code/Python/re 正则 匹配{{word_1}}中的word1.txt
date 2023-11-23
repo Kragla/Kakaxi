@@ -1,0 +1,12 @@
+    # 匹配模板{{any}}
+    text = "这是一个示例文本，包含{{word1}}和{{word2}}, {{word_3}}，以及其他内容。"
+
+    # 定义正则表达式模式
+    pattern = r"\{\{(\w+)\}\}"
+
+    # 使用re.findall函数进行匹配
+    matches = re.findall(pattern, text)
+
+    # 打印匹配结果
+    for match in matches:
+        print(match) # word1 word2 word_3

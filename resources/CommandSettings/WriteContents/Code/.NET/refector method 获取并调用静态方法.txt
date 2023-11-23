@@ -1,0 +1,1 @@
+typeof(XClass).GetMethod("XAnyMethodName").Invoke(null, null)

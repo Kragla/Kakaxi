@@ -1,0 +1,1 @@
+[ServiceFilter(typeof(LogContentFilter))]

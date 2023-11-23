@@ -1,0 +1,2 @@
+var XMethod = type.GetMethod("XMethodName", new Type[] { typeof(string), typeof(object), typeof(DbType?), typeof(ParameterDirection?), typeof(int?) }) ?? throw new Exception($"{Xtype.Name}没有找到{XMethodName}方法");
+var callXMethod = Expression.Call(XInstance, XMethod, Expression.Constant("1"), Expression.Constant("1111"), Expression.Default(typeof(DbType?)), Expression.Default(typeof(ParameterDirection?)), Expression.Default(typeof(int?)));

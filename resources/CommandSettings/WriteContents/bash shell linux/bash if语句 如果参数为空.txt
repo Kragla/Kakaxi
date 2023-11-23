@@ -1,0 +1,6 @@
+remark=$3
+if [ -n "$remark" ]; then
+    docker tag registry.cn-hangzhou.aliyuncs.com/my/server:$site registry.cn-hangzhou.aliyuncs.com/my/server:$site-$remark
+    docker push registry.cn-hangzhou.aliyuncs.com/my/server:$site-$remark
+    docker rmi registry.cn-hangzhou.aliyuncs.com/my/server:$site-$remark
+fi

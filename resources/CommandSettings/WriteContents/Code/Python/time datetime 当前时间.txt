@@ -1,0 +1,4 @@
+from datetime import datetime
+datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3] # '2023-09-28 14:15:55.139'
+datetime.now().strftime("%Y-%m-%d %H:%M:%S") # '2023-09-28 14:15:55'
+datetime.now().strftime("%y-%m-%d %H:%M") # 23-09-28 14:15

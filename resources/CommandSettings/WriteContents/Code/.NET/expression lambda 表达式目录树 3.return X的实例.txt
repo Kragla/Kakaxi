@@ -1,0 +1,3 @@
+var returnLabel = Expression.Label(XType);
+var returnExpression = Expression.Return(returnLabel, XInstance, XType);
+var returnLableTarget = Expression.Label(returnLabel, XInstance);

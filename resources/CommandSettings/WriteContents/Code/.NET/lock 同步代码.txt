@@ -1,0 +1,9 @@
+object _lockObj = new ();
+
+async Task TestLock()
+{
+	lock (_lockObj)
+	{
+		File.ReadAllText(@"D:/.NET/kakaxi/redis connectionstring.txt");
+	}
+}

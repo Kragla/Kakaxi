@@ -1,0 +1,36 @@
+        
+
+    // 1. 注册鉴权服务(搞清楚你是谁)
+    builder.Services.AddAuthentication("MyAuthCookie")
+    .AddCookie("MyAuthCookie", config =>
+    {
+        config.Cookie.Name = "BasicAuth.Cookie";
+        config.LoginPath = "/WeatherForecast/Login";
+    });
+
+    // 2. 应用授权服务
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    // 3. 登录时, 用户Claim会写入Cookie(BasicAuth.Cookie); 用户访问接口时会读取BasicAuth.Cookie中用户的Claim. 这便是框架的授权的核心逻辑
+    [HttpGet("Login")]
+    public string Login()
+    {
+        var userPrincipal = new ClaimsPrincipal(new[]
+        {
+            new ClaimsIdentity(new List<Claim>()
+            {
+                new Claim(ClaimTypes.Name, "Bob"),
+                new Claim(ClaimTypes.Email, "Bob@qq.com"),
+                new Claim("Grandma.Says", "Very nice boi.")
+            }, "Grandma Identity"),
+            new ClaimsIdentity(new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, "Bob K Foo"),
+                new Claim("DrivingLicese", "A+")
+            }, "Government")
+        });
+        HttpContext.SignInAsync(userPrincipal);
+        return "ok";
+    }
+}

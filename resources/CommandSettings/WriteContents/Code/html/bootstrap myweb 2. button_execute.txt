@@ -1,0 +1,1 @@
+<button type="button" class="btn btn-primary btn-sm" data-table-id="${tableId}" data-content="&quot;{{id}}&quot;" data-execute-url="/XController/XAction" data-method="POST" onclick="execute(this)">执行</button>

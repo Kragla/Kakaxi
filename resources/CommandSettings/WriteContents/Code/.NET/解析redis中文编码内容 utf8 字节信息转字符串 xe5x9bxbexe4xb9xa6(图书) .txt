@@ -1,0 +1,16 @@
+var content = "\\xe5\\x9b\\xbe\\xe4\\xb9\\xa6\\xe9\\xa6\\x86\\xe5\\xbf\\x97\\xe6\\x84\\xbf\\xe6\\xb4\\xbb\\xe5\\x8a\\xa8 - \\xe6\\xb5\\x99\\xe6\\xb1\\x9f\\xe7\\x9c\\x81 \\xe6\\xb8\\xa9\\xe5\\xb7\\x9e\\xe5\\xb8\\x82 \\xe7\\x93\\xaf\\xe6\\xb5\\xb7\\xe5\\x8c\\xba \\xe6\\xb8\\xa9\\xe5\\xb7\\x9e\\xe8\\x82\\xaf\\xe6\\x81\\xa9\\xe5\\xa4\\xa7\\xe5\\xad\\xa6\\xe5\\xad\\xa6\\xe4\\xb9\\xa0\\xe4\\xb8\\x8e\\xe6\\xb4\\xbb\\xe5\\x8a\\xa8\\xe4\\xb8\\xad\\xe5\\xbf\\x83";
+var val = content.Replace("\\x", "0x");
+val = Regex.Replace(val, @"(0x\w{2})+", m =>
+{
+    var bytesString = m.Value;
+    var bytes = bytesString.Split("0x", StringSplitOptions.RemoveEmptyEntries).Select(x =>
+    {
+        var byteStr = $"0x{x}";
+        byte bt = Convert.ToByte(byteStr, 16);
+        return bt;
+    }).ToArray();
+
+    var bytesText = Encoding.UTF8.GetString(bytes);
+    return bytesText;
+});
+Console.WriteLine(val); // 图书馆志愿活动 - 浙江省 温州市 瓯海区 温州肯恩大学学习与活动中心

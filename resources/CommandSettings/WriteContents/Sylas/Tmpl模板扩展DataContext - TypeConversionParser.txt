@@ -1,0 +1,2 @@
+// 使用 as 进行类型转换
+TypeConversionParser[$appItemList=$appItems as List<JObject>]

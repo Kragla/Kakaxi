@@ -1,0 +1,4 @@
+// 目标: 一个具有子集(items字段)的集合$appItemList = [{"id":"1",items:[{"id":"2"}]}]
+// 递归获取所有项以及子项的"Id"
+// 结果: $menuIds = ["1", "2"]
+CollectionSelectParser[$menuIds=$appItemList select Id -r]

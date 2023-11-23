@@ -1,0 +1,19 @@
+image="youimage:tag"
+
+# 获取运行中的容器 ID 列表
+running_containers=$(docker ps -a --filter "ancestor=$image" -q)
+
+# 检查是否存在运行中的容器
+if [ -z "$running_containers" ]; then
+  echo "没有找到运行中的容器。"
+else
+  # 循环删除每个容器
+  for container_id in $running_containers; do
+    echo "删除容器：$container_id"
+    docker stop $container_id
+    docker rm $container_id
+  done
+fi
+
+docker rmi $image
+docker-compose up -d

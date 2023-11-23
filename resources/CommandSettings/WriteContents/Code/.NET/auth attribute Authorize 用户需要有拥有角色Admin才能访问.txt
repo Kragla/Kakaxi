@@ -1,0 +1,3 @@
+//即用户必须拥有Claim为Role, 并且值为"Admin"; new Claim(ClaimTypes.Role, "Admin")
+Authorize(Roles = "Admin")
+public 接口返回值 接口名称(){...}

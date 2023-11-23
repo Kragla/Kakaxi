@@ -1,0 +1,11 @@
+var countdown = 3;
+var timer = setInterval(function () {
+    countdown--;
+    document.querySelector('#countdown').innerHTML = '<a href="/" class="btn btn-link" value="forgot">' + countdown + '秒后跳转</a>';
+
+    // 当倒计时结束时，跳转到另一个页面
+    if (countdown <= 0) {
+        clearInterval(timer);
+        location.href = '/'; // 替换为你想要跳转的页面URL
+    }
+}, 1000);

@@ -1,0 +1,6 @@
+// 目标: $idpath = "123/hello"
+// $appid=: 最终获取的值存到key为$appid中
+// $idpath reg `(?<appid>\\w+)/`: 对key为$idpath的值进行正则匹配, 这里的正则只有一个组"appid"
+// appid: 正则匹配结果的组名, 这里选择的是唯一的"appid", 结果就是123
+// 所以结果是 $appid = "123"
+RegexSubStringParser[$appid=$idpath reg `(?<appid>\\w+)/` appid]

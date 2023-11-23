@@ -1,0 +1,1 @@
+dotnet script publish main.csx -o publish_dir -c Release

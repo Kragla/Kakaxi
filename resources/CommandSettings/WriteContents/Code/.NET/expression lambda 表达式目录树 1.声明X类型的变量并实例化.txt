@@ -1,0 +1,2 @@
+var XInstance = Expression.Variable(XType, "result");
+var init = Expression.Assign(XInstance, Expression.New(XType));

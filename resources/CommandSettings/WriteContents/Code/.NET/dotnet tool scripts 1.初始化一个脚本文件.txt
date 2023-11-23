@@ -1,0 +1,1 @@
+dotnet script init main.csx

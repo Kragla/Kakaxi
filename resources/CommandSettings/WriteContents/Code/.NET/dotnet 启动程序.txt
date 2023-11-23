@@ -1,0 +1,1 @@
+dotnet /path/to/published/project.dll --urls http://localhost:5000

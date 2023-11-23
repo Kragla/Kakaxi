@@ -1,0 +1,2 @@
+// 取两个集合并集
+CollectionPlusParser[$allDevFormIds=$bizFormIds+$listFormIds]

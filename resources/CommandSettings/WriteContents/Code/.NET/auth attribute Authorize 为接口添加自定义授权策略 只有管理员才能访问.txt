@@ -1,0 +1,14 @@
+// 定义策略
+services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireResourcePermissionOrAdmin", policy =>
+    {
+        policy.RequireAssertion(context => context.User.HasClaim(c => c.Type == JwtClaimTypes.Role && c.Value == AdminConsts.AdministrationRole)
+                                            && context.User.HasClaim(c => c.Type == JwtClaimTypes.Scope && c.Value == AdminConsts.OidcApiName));
+    });
+});
+
+
+// 使用上面的策略授权
+[Authorize(Policy = AuthorizationConsts.AdministrationPolicy)]
+xxxController

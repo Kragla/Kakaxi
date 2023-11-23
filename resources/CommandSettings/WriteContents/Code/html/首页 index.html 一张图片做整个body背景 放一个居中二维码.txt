@@ -1,0 +1,21 @@
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sq51888官方网站</title>
+    <style>
+        /* 设置整个页面的大小以及背景图片 */
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url('bg.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+    </style>
+<body>
+    <!--页面正中央放一个二维码图片-->
+    <div style="position: absolute;top: 30%;left: 50%;transform: translate(-50%,-50%);">
+        <img src="qrcode.png" alt="sq51888" width="180" height="180">
+        <p style="text-align: center; color: white;">欢迎扫码下载</p>
+    </div>
+</body>

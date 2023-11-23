@@ -1,0 +1,8 @@
+SemaphoreSlim _semaphoneSlimLock = new SemaphoreSlim(1, 1);
+async Task TestLockAsync()
+{
+	await _semaphoneSlimLock.WaitAsync();
+	var txt = await File.ReadAllTextAsync(@"D:/.NET/kakaxi/redis connectionstring.txt");
+	txt.Dump();
+	_semaphoneSlimLock.Release();	
+}

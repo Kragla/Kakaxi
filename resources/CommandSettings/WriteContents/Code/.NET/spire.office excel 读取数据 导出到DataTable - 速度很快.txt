@@ -1,0 +1,6 @@
+using Workbook wb = new();
+wb.LoadFromFile(file);
+using Worksheet worksheet = wb.Worksheets[0];
+
+// 第一行的列标题自动转换为DataTable对象的列名, 获取的datatable对象即所有的有效数据, 不包含第一行的列标题
+var datatable = worksheet.ExportDataTable();

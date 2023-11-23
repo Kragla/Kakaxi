@@ -1,0 +1,4 @@
+// 目标: $allMenuUrls = ["url1/iForm/123/hello", "url2/iForm/456/world"]
+// 遍历集合每一项(SELF表示对本身而不是对某个属性)进行正则匹配, 获取指定组"formId"
+// 结果: $bizFormIds = ["123", "456"]
+CollectionSelectItemRegexSubStringParser[$bizFormIds=$allMenuUrls select SELF reg `/iForm/(?<formId>\\w+)` formId]
