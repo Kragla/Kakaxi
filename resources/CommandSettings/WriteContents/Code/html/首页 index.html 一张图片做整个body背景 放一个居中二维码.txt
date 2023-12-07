@@ -13,6 +13,11 @@
         }
     </style>
 <body>
+    <!--左上角的logo-->
+    <div style="position: absolute;top: 1%;left: 1%;">
+        <img src="Content/resources/logo.png" alt="sq51888" width="50%" height="50%">
+    </div>
+
     <!--页面正中央放一个二维码图片-->
     <div style="position: absolute;top: 30%;left: 50%;transform: translate(-50%,-50%);">
         <img src="qrcode.png" alt="sq51888" width="180" height="180">

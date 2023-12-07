@@ -1,0 +1,1 @@
+_configuration.GetSection(XxxKey).Get<XxxOptions>()

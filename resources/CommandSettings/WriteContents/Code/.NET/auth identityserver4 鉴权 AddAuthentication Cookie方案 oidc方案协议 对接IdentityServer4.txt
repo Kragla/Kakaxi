@@ -2,7 +2,7 @@ services.AddAuthentication(options =>
                 {
                     //默认验证方案
                     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                    //默认token验证失败后的确认验证结果方案
+                    //默认token验证失败后的确认验证结果方案; 这样Authorize特性标签就不需要参数: AuthenticationSchemes = "oidc"
                     options.DefaultChallengeScheme = AuthenticationConsts.OidcAuthenticationScheme;
 
                     options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -20,7 +20,7 @@ services.AddAuthentication(options =>
                         //options.TicketDataFormat = new TicketDataFormat(new CookieTicketDataFormat());
                         //options.TicketDataFormat = new TicketDataFormat(new CustomCookieDataProtector());
                     })
-
+                // Nuget:Microsoft.AspNetCore.Authentication.OpenIdConnect; 控制器的授权Scheme要指定"oidc": [Authorize(AuthenticationSchemes = "oidc")]
                 .AddOpenIdConnect("oidc", options =>
                 {
                     options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;

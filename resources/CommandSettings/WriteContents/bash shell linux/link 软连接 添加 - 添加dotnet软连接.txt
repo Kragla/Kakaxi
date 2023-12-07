@@ -1,0 +1,1 @@
+ln -s /root/.dotnet/dotnet /usr/local/bin/dotnet

@@ -1,0 +1,17 @@
+#!/bin/bash
+csport=8080
+cspass=$Changeme008
+
+cd /usr/local/
+
+wget https://github.com/coder/code-server/releases/download/v4.10.1/code-server-4.10.1-amd64.rpm -O cs.tar.gz
+
+tar -xf cs.tar.gz
+
+config="bind-addr: 0.0.0.0:$csport\nauth: password\npassword: ${cspass}\ncert: false"
+mkdir -p ~/.config/code-server/
+# The parameter "-e" represents the interpretation of escape characters.
+echo -e "$config" > ~/.config/code-server/config.yaml
+
+yum install screen -y
+screen -dmS testsc;screen -x -S testsc -p 0 -X stuff "/usr/local/code-server-4.10.1-linux-amd64/bin/code-server\n"

@@ -1,6 +1,7 @@
 # Python 3.10
 # PyAutoGUI   0.9.53 (pip install pyautogui)
 # opencv    4.8.0.74 (pip install opencv-python)
+# paramiko  3.3.1
 # keyboard  pip install keyboard
 import keyboard
 import tkinter

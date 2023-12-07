@@ -1,0 +1,9 @@
+# startup.Configure
+if (env.IsDevelopment())
+{
+    app.UseCookiePolicy(new CookiePolicyOptions
+    {
+        MinimumSameSitePolicy = SameSiteMode.Unspecified,
+        Secure = CookieSecurePolicy.Always
+    });
+}

@@ -1,0 +1,12 @@
+location /code-server {
+        rewrite ^/code-server/(.*)$ /$1 break;
+        proxy_pass http://192.168.2.10:50820;
+        proxy_redirect      off;
+        proxy_set_header    Host            $host;        # 传递域名
+        proxy_set_header X-Real-IP          $remote_addr; # 传递ip
+        proxy_set_header X-Scheme           $scheme;      # 传递协议
+        proxy_set_header X-Forwarded-For  $proxy_add_x_forwarded_for;
+        proxy_set_header Accept-Encoding  gzip;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection upgrade;
+    }

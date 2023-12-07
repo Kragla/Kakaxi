@@ -1,0 +1,1 @@
+awk '{gsub(/password: .*/,"password: 123456"); print}' ~/.config/code-server/config.yaml > codeservertempconfig.txt; mv codeservertempconfig.txt ~/.config/code-server/config.yaml -f
