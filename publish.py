@@ -145,6 +145,7 @@ def execute_local_cmds(cmds, data_context):
     if cmds is not None:
         for cmd in cmds:
             cmd = resolve_tmpl(cmd, data_context)
+            print(f'execute cmd local: {cmd}')
             if cmd and os.system(cmd) == 1:
                 raise Exception(f'命令执行失败: {cmd}')
 
