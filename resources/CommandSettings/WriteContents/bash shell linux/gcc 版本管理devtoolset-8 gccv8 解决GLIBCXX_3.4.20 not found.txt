@@ -1,0 +1,1 @@
+yum install centos-release-scl -y;yum install devtoolset-8 -y;source /opt/rh/devtoolset-8/enable # devtoolset-8对应gcc8.x.x版本 devtoolset-9对应gcc9.x.x版本 devtoolset-10对应gcc10.x.x版本

@@ -1,0 +1,1 @@
+/usr/local/mysql/bin/mysqld --verbose --help |grep -A 1 'Default options'

@@ -1,0 +1,25 @@
+function  getOcs() {
+    let arr = [];
+    for (let i = 0; i < ocs.length; i++) {
+        let oc = ocs[i];
+        if (!oc) {
+            continue;
+        }
+        oc = oc.replaceAll('\t', ';').replaceAll(' ', ';');
+        let fields = oc.split(';').filter(x => x!=='');
+        arr.push({
+                "USERID": fields[0],
+                "LOGINNAME": fields[0],
+                "USERNAME": fields[2],
+                "EMAIL": `${fields[0]}@hznu.edu.cn`,
+                "PHONE": fields[3],
+                "ISACTIVE": Number(fields[4]),
+                "DEPARTMENTNAME": fields[5],
+                "JOBNAME": fields[6],
+                "ISMANAGER": Number(fields[7]),
+                "ISPRIMARY": Number(fields[8]),
+                "ROLES": ""
+            });
+    }
+    return arr;
+}

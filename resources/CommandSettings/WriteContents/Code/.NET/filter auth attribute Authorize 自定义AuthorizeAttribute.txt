@@ -1,0 +1,54 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using System.Threading.Tasks;
+
+    public class AuthorizeMultiplePolicyAttribute : TypeFilterAttribute
+    {
+        public AuthorizeMultiplePolicyAttribute(string policies, bool IsAll) : base(typeof(AuthorizeMultiplePolicyFilter))
+        {
+            Arguments = new object[] { policies, IsAll };
+        }
+    }
+
+    public class AuthorizeMultiplePolicyFilter : IAsyncAuthorizationFilter
+    {
+        private readonly IAuthorizationService _authorizationService;
+        public string Policies { get; set; }
+        public bool IsAll { get; set; }
+        public AuthorizeMultiplePolicyFilter(string policies, bool isAll, IAuthorizationService authorizationService)
+        {
+            Policies = policies;
+            IsAll = isAll;
+            _authorizationService = authorizationService;
+        }
+        public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
+        {
+            var policies = Policies.Split(";");
+
+            if (IsAll)
+            {
+                foreach (var policy in policies)
+                {
+                    var authorized = await _authorizationService.AuthorizeAsync(context.HttpContext.User, policy);
+                    if (!authorized.Succeeded)
+                    {
+                        context.Result = new ForbidResult();
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                foreach (var policy in policies)
+                {
+                    var authorized = await _authorizationService.AuthorizeAsync(context.HttpContext.User, policy);
+                    if (authorized.Succeeded)
+                    {
+                        return;
+                    }
+                }
+                context.Result = new ForbidResult();
+            }
+        }
+    }

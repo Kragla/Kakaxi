@@ -1,0 +1,10 @@
+var ignoreSslValidationHandler = new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = (httpRequestMessage, cert, certChain, policyErrors) => true
+            };
+            services.AddHttpClient(OAuth2IntrospectionDefaults.BackChannelHttpClientName)
+                .ConfigurePrimaryHttpMessageHandler(() =>
+                {
+                    var handler = ignoreSslValidationHandler;
+                    return handler;
+                });

@@ -1,0 +1,1 @@
+alter user root@'%' identified by '123456';flush privileges;

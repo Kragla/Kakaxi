@@ -1,0 +1,5 @@
+server {
+ listen 80;
+ server_name cloud.tencent.com;    #填写您的证书绑定的域名，例如：cloud.tencent.com
+ return 301 https://$host$request_uri;  	 #将http的域名请求转成https
+}

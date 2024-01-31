@@ -1,0 +1,2 @@
+# SELECT * from dba_objects WHERE object_type='SEQUENCE' AND object_name like 'SQ_%' AND owner='HR';
+SELECT 'DROP SEQUENCE '||object_name||';' from dba_objects WHERE object_type='SEQUENCE' AND object_name like 'SQ_%' AND owner='HR';

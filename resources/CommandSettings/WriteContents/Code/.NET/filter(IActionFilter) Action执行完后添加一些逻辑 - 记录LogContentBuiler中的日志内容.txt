@@ -1,0 +1,24 @@
+public class LogContentFilter : IActionFilter
+{
+    private readonly LogContentBuilder _logBuilder;
+
+    public LogContentFilter(LogContentBuilder logBuilder)
+    {
+        _logBuilder = logBuilder;
+    }
+
+    public void OnActionExecuting(ActionExecutingContext context)
+    {
+        // 这里可以使用_myScopedService做一些操作
+    }
+
+    public void OnActionExecuted(ActionExecutedContext context)
+    {
+        // 这里可以使用_myScopedService做一些操作
+        //var logger = LogManage.GetLogger<LogContentFilter>();
+        //logger.LogInformation(_logBuilder);
+
+        Console.WriteLine("Logging On ActionExecuted:");
+        Console.WriteLine(_logBuilder.Build());
+    }
+}

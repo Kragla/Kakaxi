@@ -1,0 +1,3 @@
+string mediaType = "application/json";
+string bodyContent = "{\"id\":1}";
+HttpContent parameters = new StringContent(bodyContent, Encoding.UTF8, mediaType);

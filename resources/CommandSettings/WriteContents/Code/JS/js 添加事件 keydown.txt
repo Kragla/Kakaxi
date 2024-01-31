@@ -1,0 +1,5 @@
+document.onkeydown = function (e) {
+    if (e.key === 'Enter') {
+        document.getElementById("search_btn").click();
+    }
+}

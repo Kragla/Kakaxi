@@ -1,0 +1,38 @@
+public class QueryAuthorizeFilter : IActionFilter
+{
+    private readonly IWebHostEnvironment _webHostEnvironment;
+    private readonly IConfiguration _configuration;
+
+    public QueryAuthorizeFilter(IWebHostEnvironment webHostEnvironment, IConfiguration configuration)
+    {
+        _webHostEnvironment = webHostEnvironment;
+        _configuration = configuration;
+    }
+    public void OnActionExecuted(ActionExecutedContext context)
+    {
+        
+    }
+
+    public void OnActionExecuting(ActionExecutingContext context)
+    {
+        var accessToken = context.HttpContext.GetTokenAsync("access_token").GetAwaiter().GetResult();
+        
+        if (string.IsNullOrWhiteSpace(accessToken))
+        {
+            accessToken = context.HttpContext.Request.Query["access_token"];
+            if (string.IsNullOrWhiteSpace(accessToken))
+            {
+                context.Result = new ForbidResult();
+                return;
+            }
+            context.HttpContext.Request.Headers.Add("Authorization", $"Bearer {accessToken}");
+        }
+        
+        var roles = AdminApiHelper.GetUserRoles();
+        if (string.IsNullOrWhiteSpace(roles))
+        {
+            context.Result = new ForbidResult();
+            return;
+        }
+    }
+}

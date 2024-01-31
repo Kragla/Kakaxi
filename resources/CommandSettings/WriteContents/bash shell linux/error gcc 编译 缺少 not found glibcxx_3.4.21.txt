@@ -1,0 +1,5 @@
+# 正常情况下, centos7安装了devtoolset-8会自动更新libstdc++.so.6软连接, 如果不行则:
+# 1.安装高版本gcc
+# 2.找到跟随高版本gcc的libstdc++.so.6.0.XX文件
+# 3.复制到/lib64/中
+# 4.更新软链接  mv /lib64/libstdc++.so.6 /lib64/libstdc++.so.6.bak && ln -s /lib64/libstdc++.so.6.0.XX /lib64/libstdc++.so.6

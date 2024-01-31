@@ -1,0 +1,6 @@
+var defaultAuthBuilder = new AuthorizationPolicyBuilder();
+        var defaultAuthPolicy = defaultAuthBuilder
+            .RequireAuthenticatedUser() // 需要已经通过鉴权的用户
+            .RequireClaim(ClaimTypes.DateOfBirth) // 已鉴权过的用户需要拥有"DateOfBirth" Claim(生日Claim)
+            .Build();
+        options.DefaultPolicy = defaultAuthPolicy; // DefaultPolicy即没有指定名称参数的Authorize特性标签将应用此策略

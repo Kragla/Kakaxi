@@ -1,0 +1,4 @@
+using (var serviceScope = host.Services.CreateScope())
+{
+    var service = serviceScope.ServiceProvider.GetRequiredService;
+}

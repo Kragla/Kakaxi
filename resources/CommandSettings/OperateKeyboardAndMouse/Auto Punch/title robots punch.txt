@@ -22,6 +22,7 @@ moveTo >>> img >>> multi_ctrl_icon.png
 moveRel >>> position >>> -100 >>> 857
 dragRel >>> position >>> 0 >>> -660
 
+# 触发qtscrcpy解锁脚本
 press >>> ` >>> f5
 sleep >>> 3
 

@@ -1,0 +1,4 @@
+services.AddControllersWithViews(options =>
+  {
+       options.AllowEmptyInputInBodyModelBinding = true;
+  });

@@ -1,0 +1,1 @@
+cd /usr/local/Python3.11.1 && sed -i 's/PKG_CONFIG openssl /PKG_CONFIG openssl11 /g' configure

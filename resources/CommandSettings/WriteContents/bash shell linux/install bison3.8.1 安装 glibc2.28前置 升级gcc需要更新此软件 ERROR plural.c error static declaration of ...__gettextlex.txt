@@ -1,0 +1,1 @@
+cd /usr/local/;wget https://mirrors.tuna.tsinghua.edu.cn/gnu/bison/bison-3.8.1.tar.gz && mkdir -p bison && tar -zxvf bison-3.8.1.tar.gz && cd bison-3.8.1/ && ./configure --prefix=/usr/local/bison/ && make && make install && ln -s /usr/local/bison/bin/bison /usr/bin/bison

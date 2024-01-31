@@ -1,0 +1,1 @@
+client_max_body_size 200m; # 配置某个具体的站点的server.location节点里面

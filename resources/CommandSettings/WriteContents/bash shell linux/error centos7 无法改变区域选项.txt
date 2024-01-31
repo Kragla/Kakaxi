@@ -1,0 +1,1 @@
+if [ ! -f "/etc/environment" ]; then echo '' > /etc/environment; fi && echo 'LANG="zh_CN.UTF-8"' >> /etc/environment && echo 'LC_ALL=' >> /etc/environment && source /etc/environment && if [ ! -f "/etc/sysconfig/i18n" ]; then echo '' > /etc/sysconfig/i18n; fi && echo 'LANG="zh_CN.UTF-8"' >> /etc/sysconfig/i18n && localedef -v -c -i zh_CN -f UTF-8 zh_CN.UTF-8

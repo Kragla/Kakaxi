@@ -1,0 +1,1 @@
+screen -dmS testsc;screen -x -S testsc -p 0 -X stuff "/usr/local/code-server-4.10.1-linux-amd64/bin/code-server\n"
