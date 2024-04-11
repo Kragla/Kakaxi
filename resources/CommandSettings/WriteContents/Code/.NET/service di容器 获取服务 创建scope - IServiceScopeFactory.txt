@@ -1,0 +1,7 @@
+using (IServiceScope scope = serviceScopeFactory.CreateScope())
+{
+    IScopedProcessingService scopedProcessingService =
+        scope.ServiceProvider.GetRequiredService<IScopedProcessingService>();
+
+    await scopedProcessingService.DoWorkAsync(stoppingToken);
+}

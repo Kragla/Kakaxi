@@ -1,0 +1,7 @@
+let target: string;
+let res;
+while (res = /\$\s*\{\{\s*([^\.]*?)(\.\w+)*\s*\}\}\$#/g.exec(target)) {
+    let block = res[0];
+    let alias = res[1];
+    let func = res[2];
+}

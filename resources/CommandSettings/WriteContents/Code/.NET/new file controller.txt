@@ -1,0 +1,12 @@
+using Microsoft.AspNetCore.Mvc;
+
+namespace Xxx.Xxx...Controllers;
+
+[ApiController, Route("/[Controller]")]
+public class XxxController : ControllerBase
+{
+    [HttpGet("XxxController")]
+    public IActionResult Xxx() {
+        return Ok("XxxController");
+    }
+}

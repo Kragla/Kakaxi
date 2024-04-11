@@ -1,0 +1,1 @@
+var accessToken = HttpContext.Current.AuthenticateAsync().GetAwaiter().GetResult().Properties.GetString(".Token.access_token");

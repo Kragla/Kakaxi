@@ -1,0 +1,89 @@
+async Task DeleteDataAsync(ISqlExecute targetConn, string table, List<Dictionary<string, object>> dataDictionaries)
+{
+    string targetArgFlag = targetConn.IsOracle() ? ":" : "@";
+    foreach (var item in dataDictionaries)
+    {
+        var firstColumn = item.FirstOrDefault();
+        if (firstColumn.Key.Equals("id", StringComparison.OrdinalIgnoreCase))
+        {
+            var deleted = await targetConn.ExecuteAsync($"delete from {table} where id={targetArgFlag}id", new Dictionary<string, object> { { "id", firstColumn.Value } });
+            if (deleted > 0)
+            {
+                _log.LogInformation($"{table}删除{deleted}条已经存在的数据");
+            }
+        }
+    }
+}
+readonly string[] _duplicatePrimaryKeyError = new string[] { "Duplicate entry", "重复键", "UNIQUE constraint" };
+readonly string[] _doNotNeedToUpdateTables = new string[] { };
+async Task MigrateDataAsync(ISqlExecute sourceConn, string dataSourceSql, Dictionary<string, object> sourceQueryParameters, string table, ISqlExecute targetConn)
+{
+    string targetArgFlag = targetConn.IsOracle() ? ":" : "@";
+    var recordObjs = await sourceConn.QueryAsync(dataSourceSql, sourceQueryParameters);
+    var records = recordObjs.ToJson().FromJson<List<Dictionary<string, object>>>();
+    if (records.Any())
+    {
+        var first = records.First();
+        var columnsStatement = string.Join(',', first.Keys);
+        var valueStatement = string.Join(",", first.Keys.Select(x => $"{targetArgFlag}{x}"));
+        int affectedRows = 0;
+
+        var parentIdField = first.Keys.FirstOrDefault(x => x.Equals("parentId", StringComparison.OrdinalIgnoreCase));
+        if (!string.IsNullOrWhiteSpace(parentIdField))
+        {
+            string idField = first.Keys.FirstOrDefault(x => x.Equals("id", StringComparison.OrdinalIgnoreCase));
+            // 先按层级升序(父节点 -> 子节点)获取所有节点
+            List<List<Dictionary<string, object>>> childrenGroupByLevelAsc = new();
+            foreach (var levelRecords in GetChildrenByLevelAsc(records, idField, parentIdField))
+            {
+                childrenGroupByLevelAsc.Add(levelRecords);
+            }
+            // 从子节点开始删除已存在的数据
+            for (int i = childrenGroupByLevelAsc.Count; i > -1; i--)
+            {
+                await DeleteDataAsync(targetConn, table, childrenGroupByLevelAsc[i]);
+            }
+            // 从父节点开始迁移数据
+            foreach (var levelRecords in childrenGroupByLevelAsc)
+            {
+                affectedRows = await InsertDataAsync(columnsStatement, valueStatement, levelRecords);
+            }
+        }
+        else
+        {
+            if (!_doNotNeedToUpdateTables.Contains(table))
+            {
+                await DeleteDataAsync(targetConn, table, records);
+            }
+            affectedRows += await InsertDataAsync(columnsStatement, valueStatement, recordObjs);
+        }
+        if (affectedRows > 0)
+        {
+            _log.LogInformation($"{table}表添加了{affectedRows}条数据{Environment.NewLine}{string.Join(',', records.Select(x => x.First().Value))}{Environment.NewLine}");
+        }
+    }
+    else
+    {
+        _log.LogWarning($"表{table}没有数据, 无需操作");
+    }
+
+    async Task<int> InsertDataAsync(string columnsStatement, string valueStatement, object data)
+    {
+        try
+        {
+            return await targetConn.ExecuteAsync($"insert into {table}({columnsStatement}) values({valueStatement})", data);
+        }
+        catch (Exception ex)
+        {
+            if (_duplicatePrimaryKeyError.Any(x => ex.Message.Contains(x, StringComparison.OrdinalIgnoreCase)))
+            {
+                _log.LogWarning($"{table}忽略主键重复的错误({ex.Message}), 即数据已存在");
+                return 0;
+            }
+            else
+            {
+                throw;
+            }
+        }
+    }
+}

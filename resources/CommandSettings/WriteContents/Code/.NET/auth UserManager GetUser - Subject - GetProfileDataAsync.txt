@@ -1,0 +1,1 @@
+var user = _userManager.GetUserAsync(context.Subject);

@@ -1,0 +1,1 @@
+find /temp/ -name "*.json" -type f -exec sed -i 's/"Weight": ""/"Weight": 0/g' '{}' ';'

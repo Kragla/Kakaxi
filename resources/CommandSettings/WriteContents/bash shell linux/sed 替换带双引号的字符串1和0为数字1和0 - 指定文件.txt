@@ -1,0 +1,1 @@
+sed -i 's/"1"/1/g; s/"0"/0/g' data.json

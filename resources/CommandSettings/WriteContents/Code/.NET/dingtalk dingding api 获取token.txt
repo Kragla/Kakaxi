@@ -1,0 +1,27 @@
+/// <summary>
+/// 获取"access token"
+/// </summary>
+/// <returns></returns>
+string GetAccessToken()
+{
+    if (!_memoryCache.TryGetValue(_iduoWorkAccessTokenKey, out object accessToken))
+    {
+        // 获取"access token"
+        var appKey = _configuration["SyncToDingTalk:AppKey"];
+        var appSecret = _configuration["SyncToDingTalk:AppSecret"];
+        var tokenEndpoint = DingTalkAuthenticationDefaults.TokenEndpoint; // https://oapi.dingtalk.com/gettoken Get
+        var getTokenUrl = $"{tokenEndpoint}?appkey={appKey}&appsecret={appSecret}";
+        var tokenResponse = _httpHelper.GetApi<DingTalkTokenResponse>(getTokenUrl);
+        if (tokenResponse.Errcode != 0)
+        {
+            throw new Exception($"获取access token出错: {tokenResponse.Errmsg}");
+        }
+        accessToken = tokenResponse.AccessToken;
+        Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} 从钉钉服务器获取access token: {accessToken}");
+
+        // 缓存"access token"
+        _memoryCache.Set(_iduoWorkAccessTokenKey, accessToken, TimeSpan.FromMinutes(60));
+    }
+
+    return accessToken.ToString();
+}

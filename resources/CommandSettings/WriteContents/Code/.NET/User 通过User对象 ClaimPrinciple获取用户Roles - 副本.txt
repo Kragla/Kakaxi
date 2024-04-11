@@ -1,0 +1,1 @@
+var roles = User.Claims.FirstOrDefault(x => x.Type == "RoleIds")?.Value?.Split(',')?.ToList() ?? new List<string>()

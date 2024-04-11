@@ -53,7 +53,12 @@ def main():
     variables = UPLOAD['variables']
     fill_datacontext_by_user_input(variables, data_context)
 
-    execute_local_cmds(UPLOAD["before_cmds"], data_context)
+    executingListFlowGroups = {
+        "before_cmds": UPLOAD["before_cmds"],
+        "after_cmds": UPLOAD["after_cmds"]
+    }
+    resultListFlowCmdTxtGroups = resolve_cmd_groups(executingListFlowGroups, data_context)
+    execute_local_cmd_txts(resultListFlowCmdTxtGroups['before_cmds'])
 
     # 上传至多个服务器
     for h in UPLOAD['hosts']:
@@ -108,7 +113,7 @@ def main():
         
         execute_remote_cmds(remote_cmds, data_context, host)
 
-    execute_local_cmds(UPLOAD["after_cmds"], data_context)
+    execute_local_cmd_txts(resultListFlowCmdTxtGroups['after_cmds'])
     print('\n\n\n\n')
 
 
@@ -140,15 +145,67 @@ def execute_remote_cmds(cmds, data_context, host):
         print(f'{stdout}\n{stderr}')
 
 
-def execute_local_cmds(cmds, data_context):
-    # 执行本地命令
-    if cmds is not None:
-        for cmd in cmds:
-            cmd = resolve_tmpl(cmd, data_context)
-            print(f'execute cmd local: {cmd}')
-            if cmd and os.system(cmd) == 1:
-                raise Exception(f'命令执行失败: {cmd}')
+def execute_local_cmd_txts(cmd_txts):
+    for cmd_txt in cmd_txts:
+        print(f'execute cmd local: {cmd_txt}')
+        if os.system(cmd_txt) == 1:
+            raise Exception(f'命令执行失败: {cmd_txt}')
 
+
+def resolve_cmd_groups(list_flow_groups, data_context):
+    # 执行本地命令
+    not_need_execute_group = []
+    executing_list_flow_groups = {}
+    for key in list_flow_groups.keys():
+        cmds = list_flow_groups[key]
+        if cmds is not None:
+            for cmd in cmds:
+                if type(cmd) == str:
+                    cmd = resolve_tmpl(cmd, data_context)
+                    print(f'execute cmd local: {cmd}')
+                    if cmd and os.system(cmd) == 1:
+                        raise Exception(f'命令执行失败: {cmd}')
+                else:
+                    cmdTxt = cmd.get("cmdTxt")
+                    completeFlowGroup = cmd.get("completeFlowGroup")
+                    if not completeFlowGroup:
+                        executing_list_flow_group = executing_list_flow_groups.get(key)
+                        if not executing_list_flow_group:
+                            executing_list_flow_groups[key] = []
+                        executing_list_flow_groups[key].append(cmd)
+                        continue
+                    
+                    if completeFlowGroup in not_need_execute_group:
+                        continue
+                    
+                    cmdTxt = resolve_tmpl(cmdTxt, data_context)
+                    if not cmdTxt:
+                        # 一旦completeFlowGroup中有一个命令无法执行, 当前completeFlowGroup都不需要执行了
+                        not_need_execute_group.append(completeFlowGroup)
+                        continue
+                    
+                    print(f'execute cmd local: {cmdTxt}, completeFlowGroup: {completeFlowGroup}')
+                    #executingCmds.append(cmd)
+                    executing_list_flow_group = executing_list_flow_groups.get(key)
+                    if not executing_list_flow_group:
+                        executing_list_flow_groups[key] = []
+                    executing_list_flow_groups[key].append(cmd)
+        
+        list_flow_cmd_txt_groups = {}
+        for key in executing_list_flow_groups.keys():
+            executing_list_flow_group = executing_list_flow_groups[key]
+            for executingCmd in executing_list_flow_group:
+                executingCmdTxt = executingCmd.get("cmdTxt")
+                executingCmdCompleteFlowGroup = executingCmd.get("completeFlowGroup")
+                if executingCmdCompleteFlowGroup and executingCmdCompleteFlowGroup in not_need_execute_group:
+                    continue
+
+                list_flow_cmd_txt_group = list_flow_cmd_txt_groups.get('key')
+                if not list_flow_cmd_txt_group:
+                    list_flow_cmd_txt_groups[key] = []
+                list_flow_cmd_txt_groups[key].append(executingCmdTxt)
+        
+        return list_flow_cmd_txt_groups
 
 # 解析带模板的字符串
 def resolve_tmpl(source, data_context):

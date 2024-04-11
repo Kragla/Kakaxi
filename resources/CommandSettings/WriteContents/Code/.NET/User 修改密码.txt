@@ -1,0 +1,11 @@
+var userId = User.Claims.FirstOrDefault(x => x.Type == "sub")?.Value;
+var user = await userManager.FindByIdAsync(userId);
+if (user is null)
+{
+    return Content("无效的用户");
+}
+var changePasswordResult = await userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
+if (!changePasswordResult.Succeeded)
+{
+    return Content(string.Join(';', changePasswordResult.Errors.Select(x => x.Description)));
+}

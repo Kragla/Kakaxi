@@ -1,0 +1,1 @@
+sed -i 's@deb.debian.org@mirror.nju.edu.cn@g' /etc/apt/sources.list.d/debian.sources

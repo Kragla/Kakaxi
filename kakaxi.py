@@ -77,6 +77,7 @@ class Kakaxi(object):
         keyboard.add_hotkey('ctrl+alt+8', body_flicker)
 
 
+    # 加载所有配置
     def load_scripts(self):
         self.scripts_dic = {}
         self.extend_scripts_dic_from_files()
@@ -166,9 +167,13 @@ class Kakaxi(object):
         key = self.key_combobox.get()
         if not key:
             return
+        if key == 'reload':
+            self.load_scripts()
+            messagebox.showinfo('提示', '已重新加载配置')
+            return
         script_info = self.scripts_dic.get(key)
         if script_info is None:
-            messagebox.showerror('无效的选择')
+            messagebox.showerror('无效的选择', key)
             return
         
         # **切换窗口**
@@ -182,7 +187,7 @@ class Kakaxi(object):
         elif script_info.script_type == 1:
             self.operate_keyboard_and_mouse(script_info.script_file, script_info.script_content)
         else:
-            messagebox.showerror('无效的命令类型' + str(script_info.script_type))
+            messagebox.showerror('无效的命令类型', str(script_info.script_type))
         
 
     def write_content(self, text):

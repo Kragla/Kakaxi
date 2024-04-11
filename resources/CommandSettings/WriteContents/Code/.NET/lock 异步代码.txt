@@ -1,8 +1,16 @@
-SemaphoreSlim _semaphoneSlimLock = new SemaphoreSlim(1, 1);
-async Task TestLockAsync()
+static SemaphoreSlim _semaphoneSlimLock = new SemaphoreSlim(1, 1);
+
+await _semaphoneSlimLock.WaitAsync();
+// finally保证异常时也会-1
+try
 {
-	await _semaphoneSlimLock.WaitAsync();
-	var txt = await File.ReadAllTextAsync(@"D:/.NET/kakaxi/redis connectionstring.txt");
-	txt.Dump();
-	_semaphoneSlimLock.Release();	
+    var txt = await File.ReadAllTextAsync(@"D:/.NET/kakaxi/redis connectionstring.txt");
+    txt.Dump();
+}
+catch (Exception)
+{
+}
+finally
+{
+    _semaphoneSlimLock.Release();
 }

@@ -1,0 +1,13 @@
+@page "/products"
+@inject HttpClient httpClient
+
+@code {
+    // 已经全局引用了Product所在命名空间
+    private List<Product> products = new();
+    protected override async Task OnInitializedAsync() {
+        var ps = await httpClient.GetFromJsonAsync<List<Product>>("/api/Product/List");
+        if (ps is not null) {
+            products = ps;
+        }
+    }
+}

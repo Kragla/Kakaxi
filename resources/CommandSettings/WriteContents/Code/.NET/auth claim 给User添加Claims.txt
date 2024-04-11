@@ -1,0 +1,2 @@
+var identity = new ClaimsIdentity(new List<Claim> { new Claim("scope", "myapi") }, context.Principal.Identity.AuthenticationType);
+context.Principal.AddIdentity(identity);

@@ -1,0 +1,30 @@
+<!--下拉框默认隐藏, 点击标题, 下拉框和搜索栏显示-->
+<h3 class="my-3 text-center dropdown-toggle" id="list" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    Title
+</h3>
+<div class="dropdown-menu" aria-labelledby="list">
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" id="searchDropdown" value="" placeholder="Search..." aria-label="Search" onkeyup="searchItems(this)" />
+    </div>
+    <div class="dropdown-divider"></div>
+    <a class="dropdown-item" data-value="value1" href="#" onclick="func('value1')">value1</a>
+    <a class="dropdown-item" data-value="value2" href="#" onclick="func('value2')">value2</a>
+</div>
+<script>
+    function func(value) {
+        console.log(value);
+    }
+
+    function searchItems(searchDropdown) {
+        var dropdownItems = searchDropdown.parentNode.parentNode.querySelectorAll(".dropdown-item");
+
+        var value = searchDropdown.value.toLowerCase();
+        dropdownItems.forEach(function (item) {
+            if (item.textContent.toLowerCase().indexOf(value) > -1) {
+                item.style.display = "block";
+            } else {
+                item.style.display = "none";
+            }
+        });
+    }
+</script>

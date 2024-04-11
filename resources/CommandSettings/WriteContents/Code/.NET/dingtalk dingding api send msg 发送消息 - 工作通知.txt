@@ -1,0 +1,20 @@
+string access_token = "xxx";
+string userId = "xxxx"; // 钉钉通讯录中的用户Id
+var info = new
+{
+	agent_id = 872701548,
+	userid_list = userId,
+	msg = new
+	{
+		title = "消息标题",
+		msgtype = "text",
+		text = new
+		{
+			content = "hello world"
+		}
+	}
+};
+// string infoJson = {"id":"string","dingTalk":{"title":"string","megType":"string","message":"string"}}
+var url = $"https://oapi.dingtalk.com/topapi/message/corpconversation/asyncsend_v2?access_token={access_token}";
+var sendResp = await _httpClient.PostAsync(url, new StringContent(JsonConvert.SerializeObject(info), Encoding.UTF8, "application/json"));
+(await sendResp.Content.ReadAsStringAsync()).Dump();

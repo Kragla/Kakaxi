@@ -1,0 +1,55 @@
+<select class="form-control" name="select1" onchange="updateSelect2Options()">
+    <option value="0">111</option>
+    <option value="1">222</option>
+    <option value="2">333</option>
+    <option value="3">444</option>
+</select>
+<select class="form-control" name="select2"></select>
+
+// 初始化select2选项
+updateSelect2Options()
+
+function updateSelect2Options(){
+    let select1 = document.querySelector("select[name='select1']");
+    let select1Val = select1.value;
+    let select2 = document.querySelector("select[name='select2']");
+    
+    select1.innerHTML = "";
+    select1.add(new Option("请选择", ""));
+    
+    select2.innerHTML = "";
+    select1.add(new Option("请选择", ""));
+
+    if (select1Val < 3) {
+        select2.add(new Option("选项1", "值1"));
+        select2.add(new Option("选项2", "值2"));
+    } else {
+        select2.add(new Option("选项11", "值11"));
+        select2.add(new Option("选项22", "值22"));
+    }
+
+    // 恢复上次选中的选项
+    let select1Val = "select1当前值";
+    let select2Val = "select2当前值";
+    // 遍历所有的 <option> 元素
+    for (var i = 0; i < select1.options.length; i++) {
+        var option = select1.options[i];
+
+        // 检查当前选项的值是否与给定的值匹配
+        if (option.value === select1Val) {
+            // 设置选中项的索引
+            select1.selectedIndex = i;
+            break;
+        }
+    }
+    for (var i = 0; i < select2.options.length; i++) {
+        var option = select2.options[i];
+
+        // 检查当前选项的值是否与给定的值匹配
+        if (option.value === select2Val) {
+            // 设置选中项的索引
+            select2.selectedIndex = i;
+            break;
+        }
+    }
+}

@@ -1,0 +1,17 @@
+private static Task OnTokenResponseReceived(TokenResponseReceivedContext context)
+{
+    var accessToken = context.TokenEndpointResponse.AccessToken;
+    // 检查是否成功获取到访问令牌
+    if (!string.IsNullOrEmpty(accessToken))
+    {
+        context.HttpContext.Session.SetString("token", accessToken);
+        //context.HttpContext.Response.HttpContext.Session.SetString("token", accessToken);
+
+        // 将scope声明添加到用户的Claims中
+        var scopes = context.TokenEndpointResponse.Scope.Split(' ');
+        var claims = scopes.Select(x => new Claim("scope", x)).ToList();
+        var identity = new ClaimsIdentity(claims, context.Principal.Identity.AuthenticationType);
+        context.Principal.AddIdentity(identity);
+    }
+    return Task.CompletedTask;
+}

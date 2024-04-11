@@ -1,0 +1,1 @@
+var response = _httpHelper.PostApi<DingTalkGetUserByMobileResponse>($"https://oapi.dingtalk.com/topapi/v2/user/getbymobile?access_token={accessToken}&tmp={DateTime.Now:HHmmss}", new Dictionary<string, object> { { "mobile", mobile } });

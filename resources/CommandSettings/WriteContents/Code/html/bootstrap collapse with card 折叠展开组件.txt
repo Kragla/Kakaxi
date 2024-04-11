@@ -1,0 +1,23 @@
+<div class="card">
+    <div class="card-header" id="heading-1111">
+        <h5 class="card-title mb-0">
+            <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1111" aria-expanded="false" aria-controls="collapse1111">
+                {{title}}
+            </button>
+        </h5>
+    </div>
+    <div id="collapse1111" class="collapse" aria-labelledby="heading-1111" data-bs-parent="#accordion">
+        <div class="card-body">
+            <p class="card-text">
+                <span style="display: inline-block; width: 100px;">
+                    {{key}}
+                </span>
+                <span>:</span>
+                <span style="margin-bottom: 10px; color:darkgray;">
+                    {{value}}
+                </span>
+                <br>
+            </p>
+        </div>
+    </div>
+</div>

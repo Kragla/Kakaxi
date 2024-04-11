@@ -1,0 +1,1 @@
+find "$json_files_path" -name "*.json" -type f -exec sed -i 's/"1"/1/g' '{}' ';' -exec sed -i 's/"0"/0/g' '{}' ';'

@@ -1,0 +1,10 @@
+var userAgent = n.Request.Headers["User-Agent"].ToString().ToLower();
+if (userAgent.Contains("dingtalk"))
+{
+    n.ProtocolMessage.AcrValues = "idp:DingTalk";
+}
+if (n.HttpContext.Session.Get("sso_login_user") != null)
+{
+    n.ProtocolMessage.AcrValues = "idp:Weixin"; //此处设置默认的第三方登录类型
+}
+n.ProtocolMessage.AcrValues = "idp:DingTalk";

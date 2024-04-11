@@ -1,0 +1,1 @@
+ var userId = User.FindFirst(JwtClaimTypes.Subject).Value;

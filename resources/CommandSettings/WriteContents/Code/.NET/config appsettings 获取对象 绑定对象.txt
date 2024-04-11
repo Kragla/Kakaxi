@@ -1,0 +1,3 @@
+// 绑定配置到MySettings对象  
+var mySettings = new MySettings();  
+Configuration.GetSection("MySettings").Bind(mySettings);

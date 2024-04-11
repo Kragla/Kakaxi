@@ -1,0 +1,1 @@
+nvm npm_mirror https://npm.taobao.org/mirrors/npm/
