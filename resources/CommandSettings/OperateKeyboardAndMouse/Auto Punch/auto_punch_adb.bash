@@ -26,7 +26,7 @@ echo "找到设备数量: $device_count"
 # 检查是否有设备连接到计算机
 if [[ $device_count -eq 0 ]]; then
     echo "未找到连接的设备。请确保至少有一个设备连接到计算机。"
-    /d/.NET/iduo/routine/shell/sendmsg "$(date +"%Y-%m-%d %H:%M:%S") 未找到连接的设备"
+    /d/.NET/solong/routine/shell/sendmsg "$(date +"%Y-%m-%d %H:%M:%S") 未找到连接的设备"
     exit 1
 fi
 

@@ -1,1 +1,1 @@
-docker cp iduo.form.web:/usr/share/nginx/html/index.html /www/wwwroot/iduo.web/iduo.form.web/index.html
+docker cp solong.form.web:/usr/share/nginx/html/index.html /www/wwwroot/solong.web/solong.form.web/index.html

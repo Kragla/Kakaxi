@@ -4,7 +4,7 @@
 /// <returns></returns>
 string GetAccessToken()
 {
-    if (!_memoryCache.TryGetValue(_iduoWorkAccessTokenKey, out object accessToken))
+    if (!_memoryCache.TryGetValue(_solongWorkAccessTokenKey, out object accessToken))
     {
         // 获取"access token"
         var appKey = _configuration["SyncToDingTalk:AppKey"];
@@ -20,7 +20,7 @@ string GetAccessToken()
         Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} 从钉钉服务器获取access token: {accessToken}");
 
         // 缓存"access token"
-        _memoryCache.Set(_iduoWorkAccessTokenKey, accessToken, TimeSpan.FromMinutes(60));
+        _memoryCache.Set(_solongWorkAccessTokenKey, accessToken, TimeSpan.FromMinutes(60));
     }
 
     return accessToken.ToString();
