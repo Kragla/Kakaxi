@@ -170,20 +170,15 @@ def resolve_cmd_groups(list_flow_groups, data_context):
                 else:
                     cmdTxt = cmd.get("cmdTxt")
                     completeFlowGroup = cmd.get("completeFlowGroup")
-                    if not completeFlowGroup:
-                        executing_list_flow_group = executing_list_flow_groups.get(key)
-                        if not executing_list_flow_group:
-                            executing_list_flow_groups[key] = []
-                        executing_list_flow_groups[key].append(cmd)
-                        continue
                     
                     if completeFlowGroup in not_need_execute_group:
                         continue
                     
                     cmdTxt = resolve_tmpl(cmdTxt, data_context)
                     if not cmdTxt:
-                        # 一旦completeFlowGroup中有一个命令无法执行, 当前completeFlowGroup都不需要执行了
-                        not_need_execute_group.append(completeFlowGroup)
+                        if completeFlowGroup:
+                            # 一旦completeFlowGroup中有一个命令无法执行, 当前completeFlowGroup都不需要执行了
+                            not_need_execute_group.append(completeFlowGroup)
                         continue
                     
                     cmd[cmdTxt] = cmdTxt
