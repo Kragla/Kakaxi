@@ -58,7 +58,9 @@ def main():
         "after_cmds": UPLOAD["after_cmds"]
     }
     resultListFlowCmdTxtGroups = resolve_cmd_groups(executingListFlowGroups, data_context)
-    execute_local_cmd_txts(resultListFlowCmdTxtGroups['before_cmds'])
+    before_cmds = resultListFlowCmdTxtGroups.get('before_cmds')
+    if before_cmds:
+        execute_local_cmd_txts(before_cmds)
 
     # 上传至多个服务器
     for h in UPLOAD['hosts']:
@@ -113,7 +115,9 @@ def main():
         
         execute_remote_cmds(remote_cmds, data_context, host)
 
-    execute_local_cmd_txts(resultListFlowCmdTxtGroups['after_cmds'])
+    after_cmds = resultListFlowCmdTxtGroups.get('after_cmds')
+    if after_cmds:
+        execute_local_cmd_txts(after_cmds)
     print('\n\n\n\n')
 
 
@@ -171,7 +175,7 @@ def resolve_cmd_groups(list_flow_groups, data_context):
                     cmdTxt = cmd.get("cmdTxt")
                     completeFlowGroup = cmd.get("completeFlowGroup")
                     
-                    if completeFlowGroup in not_need_execute_group:
+                    if completeFlowGroup and completeFlowGroup in not_need_execute_group:
                         continue
                     
                     cmdTxt = resolve_tmpl(cmdTxt, data_context)
@@ -181,7 +185,7 @@ def resolve_cmd_groups(list_flow_groups, data_context):
                             not_need_execute_group.append(completeFlowGroup)
                         continue
                     
-                    cmd[cmdTxt] = cmdTxt
+                    cmd['cmdTxt'] = cmdTxt
                     executing_list_flow_group = executing_list_flow_groups.get(key)
                     if not executing_list_flow_group:
                         executing_list_flow_groups[key] = []
