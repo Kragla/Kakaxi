@@ -162,9 +162,11 @@ def resolve_cmd_groups(list_flow_groups, data_context):
             for cmd in cmds:
                 if type(cmd) == str:
                     cmd = resolve_tmpl(cmd, data_context)
-                    print(f'execute cmd local: {cmd}')
-                    if cmd and os.system(cmd) == 1:
-                        raise Exception(f'命令执行失败: {cmd}')
+                    if cmd:
+                        executing_list_flow_group = executing_list_flow_groups.get(key)
+                    if not executing_list_flow_group:
+                        executing_list_flow_groups[key] = []
+                    executing_list_flow_groups[key].append({'cmdTxt': cmd})
                 else:
                     cmdTxt = cmd.get("cmdTxt")
                     completeFlowGroup = cmd.get("completeFlowGroup")
@@ -184,8 +186,7 @@ def resolve_cmd_groups(list_flow_groups, data_context):
                         not_need_execute_group.append(completeFlowGroup)
                         continue
                     
-                    print(f'execute cmd local: {cmdTxt}, completeFlowGroup: {completeFlowGroup}')
-                    #executingCmds.append(cmd)
+                    cmd[cmdTxt] = cmdTxt
                     executing_list_flow_group = executing_list_flow_groups.get(key)
                     if not executing_list_flow_group:
                         executing_list_flow_groups[key] = []
