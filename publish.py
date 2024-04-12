@@ -200,7 +200,7 @@ def resolve_cmd_groups(list_flow_groups, data_context):
                 if executingCmdCompleteFlowGroup and executingCmdCompleteFlowGroup in not_need_execute_group:
                     continue
 
-                list_flow_cmd_txt_group = list_flow_cmd_txt_groups.get('key')
+                list_flow_cmd_txt_group = list_flow_cmd_txt_groups.get(key)
                 if not list_flow_cmd_txt_group:
                     list_flow_cmd_txt_groups[key] = []
                 list_flow_cmd_txt_groups[key].append(executingCmdTxt)
