@@ -1,0 +1,11 @@
+#r "sdk:Microsoft.NET.Sdk.Web"
+
+using System.Net.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http;
+
+
+var serviceProvider = new ServiceCollection()
+	   .AddHttpClient()
+	   .BuildServiceProvider();
+IHttpClientFactory clientFactory = serviceProvider.GetService<IHttpClientFactory>();

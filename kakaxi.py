@@ -2,11 +2,15 @@
 # PyAutoGUI   0.9.53 (pip install pyautogui)
 # opencv    4.8.0.74 (pip install opencv-python)
 # paramiko  3.3.1
-# keyboard  pip install keyboard
+# keyboard
+# playwright        1.44.0
+
+# # CPU 0.1%; MEM: 32MB
 import keyboard
 import tkinter
 from tkinter import ttk
 from tkinter import messagebox
+from TkinterComponents.Select import InputSelect
 import pyautogui
 import cv2
 import re
@@ -105,44 +109,52 @@ class Kakaxi(object):
                         self.scripts_dic[key] = ScriptInfo(file_content, 0, file)
 
 
-
     def show(self):
         # 主窗口
         self.main_window = tkinter.Tk()
         self.main_window.title(WINDOW_TITLE)
         
-        self.key_combobox = ttk.Combobox(self.main_window, values=self.all_options, width=100)
-        self.key_combobox.grid(row=0, column=0, padx=10, pady=10, ipadx=40, ipady=0)
-        self.key_combobox.focus_set()  # 设置焦点到key_combobox
+        # self.key_combobox = ttk.Combobox(self.main_window, values=self.all_options, width=100)
+        # self.key_combobox.grid(row=0, column=0, padx=10, pady=10, ipadx=40, ipady=0)
+        # self.key_combobox.focus_set()  # 设置焦点到key_combobox
 
-        def on_enter(event):
-            text = event.widget.get()
+        self.key_combobox = InputSelect(self, self.main_window, self.all_options, 100)
+        self.key_combobox.on_enter_pressed = self.run
+        
+        # def on_enter(event):
+        #     text = event.widget.get()
             
-            matches = self.all_options
+        #     matches = self.all_options
 
-            if len(text) > 0:
-                keywords = text.split(' ')
-                for keyword in keywords:
-                    if keyword:
-                        matches =  [option for option in matches if keyword.lower() in option.lower()]
+        #     if len(text) > 0:
+        #         keywords = text.split(' ')
+        #         for keyword in keywords:
+        #             if keyword:
+        #                 matches =  [option for option in matches if keyword.lower() in option.lower()]
 
-                self.key_combobox['values'] = matches
-                self.key_combobox.event_generate("<Button-1>", x=self.key_combobox.winfo_width() - 2, y=2)
-            else:
-                self.key_combobox['values'] = matches
+        #         self.key_combobox['values'] = matches
+        #         # 生成一个鼠标左键单击事件(按钮 1 是左键，按钮 2 是中键，按钮 3 是右键), 右上角的位置(下拉框的下拉按钮)
+        #         self.key_combobox.event_generate("<Button-1>", x=self.key_combobox.winfo_width() - 2, y=2)
+        #     else:
+        #         self.key_combobox['values'] = matches
 
-        self.key_combobox.bind('<Return>', on_enter) # <KeyRelease>
+        # self.key_combobox.bind('<Return>', on_enter) # <KeyRelease>
 
-        execute_btn = tkinter.Button(self.main_window, text="确定") # 参数"command=self.run"无法传递event参数
-        execute_btn.grid(row=0, column=1, padx=10, pady=10, ipadx=0, ipady=0)
-        # 绑定回车事件
-        execute_btn.bind("<Return>", self.run)
-        # 绑定单击事件
-        execute_btn.bind("<Button-1>", self.run)
+        # execute_btn = tkinter.Button(self.main_window, text="确定") # 参数"command=self.run"无法传递event参数
+        # execute_btn.grid(row=0, column=1, padx=10, pady=10, ipadx=0, ipady=0)
+        # # 绑定回车事件
+        # execute_btn.bind("<Return>", self.run)
+        # # 绑定单击事件
+        # execute_btn.bind("<Button-1>", self.run)
         
         # 设置屏幕位置
         self.set_location()
-        
+
+        # 设置不透明度
+        self.main_window.attributes("-alpha", 0.6)
+        self.main_window.config(background='#000000')
+        # self.main_window.overrideredirect(True)
+
         self.main_window.mainloop()
 
 
@@ -163,8 +175,8 @@ class Kakaxi(object):
         # 设置窗口位置
         self.main_window.geometry(f"{window_width}x{window_height}+{x}+{y}")
 
-    def run(self, event):
-        key = self.key_combobox.get()
+    def run(self, key):
+        #key = self.key_combobox.get()
         if not key:
             return
         if key == 'reload':

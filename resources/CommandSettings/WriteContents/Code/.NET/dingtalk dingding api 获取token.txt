@@ -7,10 +7,9 @@ string GetAccessToken()
     if (!_memoryCache.TryGetValue(_solongWorkAccessTokenKey, out object accessToken))
     {
         // 获取"access token"
-        var appKey = _configuration["SyncToDingTalk:AppKey"];
-        var appSecret = _configuration["SyncToDingTalk:AppSecret"];
-        var tokenEndpoint = DingTalkAuthenticationDefaults.TokenEndpoint; // https://oapi.dingtalk.com/gettoken Get
-        var getTokenUrl = $"{tokenEndpoint}?appkey={appKey}&appsecret={appSecret}";
+        var appKey = "xxx";
+        var appSecret = "xxx";
+        var getTokenUrl = $"{https://oapi.dingtalk.com/gettoken}?appkey={appKey}&appsecret={appSecret}";
         var tokenResponse = _httpHelper.GetApi<DingTalkTokenResponse>(getTokenUrl);
         if (tokenResponse.Errcode != 0)
         {

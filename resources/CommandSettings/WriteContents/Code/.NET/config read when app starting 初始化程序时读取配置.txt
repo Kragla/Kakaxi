@@ -1,0 +1,8 @@
+var builder = WebApplication.CreateBuilder(args);
+var configBuilder = builder.Configuration.SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").AddJsonFile("appsettings.Development.json");
+if (builder.Environment.EnvironmentName == "Development")
+{
+    configBuilder.AddUserSecrets<Program>(true, true);
+}
+var config = configBuilder.Build();
+string defaultConnectionString = config.GetConnectionString("Default") ?? throw new Exception("connectiong string missing");

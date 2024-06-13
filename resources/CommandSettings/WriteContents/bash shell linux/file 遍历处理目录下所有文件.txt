@@ -1,0 +1,20 @@
+# 指定要遍历的目录
+directory="./"
+
+# 遍历目录下的所有文件
+find "$directory" -type f | while read -r file; do
+    # 获取文件名
+    filename=$(basename "$file")
+
+    # 检查文件名是否包含 "My.Context"
+    if [[ "$filename" == *"My.Context"* ]]; then
+        # 修改文件名中的 "My.Context" 为 "My.DataContext"
+        new_filename="${filename/My.Context/My.DataContext}"
+        mv "$file" "$(dirname "$file")/$new_filename"
+
+        # 替换文件内容中的 "My.Context" 为 "My.DataContext"
+        sed -i 's/My.Context/My.DataContext/g' "$(dirname "$file")/$new_filename"
+    fi
+done
+
+echo "已完成替换"

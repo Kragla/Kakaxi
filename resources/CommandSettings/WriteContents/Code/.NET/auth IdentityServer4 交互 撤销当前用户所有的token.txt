@@ -1,0 +1,2 @@
+//[FromServices] IIdentityServerInteractionService identityServer
+await identityServer.RevokeTokensForCurrentSessionAsync();

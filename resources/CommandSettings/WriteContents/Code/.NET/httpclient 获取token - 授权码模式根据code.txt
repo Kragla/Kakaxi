@@ -1,0 +1,61 @@
+string clientId = "XXId";
+string clientSecret = "XXSecret";
+string tokenEndpoint = "XX";
+string userInformationEndpoint = "XX";
+
+using var client = httpClientFactory.CreateClient();
+var accessToken = await RedisHelper.GetAsync(configuration, $"token_{clientId}");
+if (string.IsNullOrWhiteSpace(accessToken))
+{
+    //byte[] b = Encoding.Default.GetBytes($"{clientId}:{clientSecret}");
+    //var str = Convert.ToBase64String(b);
+    //client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", str);
+	client.SetBasicAuthentication(clientId, clientSecret);
+
+	var tokenRequestParameters = new Dictionary<string, string>()
+	{
+		{ "client_id", clientId },
+		{ "redirect_uri", "" },
+		{ "client_secret", clientSecret },
+		{ "code", code },
+		{ "grant_type", "authorization_code" },
+	};
+
+	var requestContent = new FormUrlEncodedContent(tokenRequestParameters!);
+
+	var requestMessage = new HttpRequestMessage(HttpMethod.Post, tokenEndpoint);
+	requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+	requestMessage.Content = requestContent;
+	requestMessage.Version = client.DefaultRequestVersion;
+	var response = await client.SendAsync(requestMessage);
+	if (response.IsSuccessStatusCode)
+	{
+		var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+		if (payload.RootElement.TryGetProperty("access_token", out var accessTokenProp) && payload.RootElement.TryGetProperty("expires_in", out var expiresInProp))
+		{
+			accessToken = accessTokenProp.GetString();
+			var expireIn = expiresInProp.GetInt32();
+			if (expireIn > 10)
+			{
+				_ = RedisHelper.CacheAsync(configuration, $"token_{clientId}", accessToken, expireIn - 10);
+			}
+		}
+		else
+		{
+            throw new Exception($"获取access_token失败: {payload.RootElement}");
+		}
+	}
+	else
+	{
+		throw new Exception($"获取access_token失败");
+	}
+}
+
+UserInfoRequest userInfoRequest = new()
+{
+	Address = userInformationEndpoint,
+	Token = accessToken
+};
+
+var userinfo = await client.GetUserInfoAsync(userInfoRequest);
+string userId = userinfo.TryGet("id");

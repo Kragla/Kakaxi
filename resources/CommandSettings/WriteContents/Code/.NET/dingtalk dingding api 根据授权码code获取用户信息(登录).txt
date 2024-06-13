@@ -1,0 +1,39 @@
+async Task DingTalkUserInfoOrLogin()
+{
+	string appKey = "xxx";
+	string appSecret = "xxx";
+	// 通过前端SDK的dd.getAuthCode获取或者后台通过授权码方式访问connect/oauth2/sns_authorize获取
+	var code = "xxx";
+	var address = $"https://oapi.dingtalk.com/gettoken?appkey={appKey}&appsecret={appSecret}";
+
+	using var httpclient = new HttpClient();
+	var response = await httpclient.GetAsync(address);
+	var responseJson = await response.Content.ReadAsStringAsync();
+	var doc = JObject.Parse(responseJson);
+	if (doc["errcode"].ToString() != "0")
+	{
+		throw new Exception(doc["errmsg"].ToString());
+	}
+	string accessToken = doc["access_token"].ToString();
+
+	string userIdEndpoint = $"https://oapi.dingtalk.com/user/getuserinfo?access_token={accessToken}&code={code}";
+	var userIdResponse = await httpclient.GetAsync(userIdEndpoint);
+	var userIdResponseJson = await userIdResponse.Content.ReadAsStringAsync();
+	var userIdDoc = JObject.Parse(userIdResponseJson);
+	if (userIdDoc["errcode"].ToString() != "0")
+	{
+		throw new Exception(userIdDoc["errmsg"].ToString());
+	}
+	string username = userIdDoc["name"].ToString();
+	string userId = userIdDoc["userid"].ToString();
+
+	string userInfoEndpoint = $"https://oapi.dingtalk.com/user/get?access_token={accessToken}&userid={userId}";
+	var userInfoResponse = await httpclient.GetAsync(userInfoEndpoint);
+	var userInfoJson = await userInfoResponse.Content.ReadAsStringAsync();
+	var userInfoDoc = JObject.Parse(userInfoJson);
+	if (userInfoDoc["errcode"].ToString() != "0")
+	{
+		throw new Exception(userInfoDoc["errmsg"].ToString());
+	}
+	userInfoDoc.Dump();
+}

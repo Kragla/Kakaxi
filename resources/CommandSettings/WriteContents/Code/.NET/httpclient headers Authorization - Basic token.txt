@@ -1,0 +1,4 @@
+//byte[] b = Encoding.Default.GetBytes($"{clientId}:{clientSecret}");
+//var str = Convert.ToBase64String(b);
+//client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", str);
+client.SetBasicAuthentication(clientId, clientSecret);

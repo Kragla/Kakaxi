@@ -1,0 +1,1 @@
+pnpm config set global-bin-dir "D:\Download\pnpm-store";pnpm config set cache-dir "D:\Download\pnpm-store\pnpm-cache";pnpm config set state-dir "D:\Download\pnpm-store\pnpm-state";pnpm config set global-dir "D:\Download\pnpm-store\global";pnpm config set store-dir "D:\Download\pnpm-store\pnpm-store"

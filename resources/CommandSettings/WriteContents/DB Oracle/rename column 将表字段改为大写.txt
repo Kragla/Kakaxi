@@ -1,0 +1,31 @@
+DECLARE  
+  v_table_name VARCHAR2(100) := 'xxx'; -- 替换为你的表名  
+  v_owner      VARCHAR2(100) := 'xx'; -- 替换为你的模式名  
+  v_new_table_name VARCHAR2(100); 
+BEGIN
+  -- 检查表名是否是小写并转换为大写
+  SELECT DECODE(UPPER(table_name), table_name, NULL, UPPER(table_name))
+  INTO v_new_table_name  
+  FROM all_tables  
+  WHERE table_name = v_table_name AND owner = v_owner AND table_name <> UPPER(table_name);
+  
+  
+  IF v_new_table_name IS NOT NULL THEN  
+    -- DBMS_OUTPUT.PUT_LINE('ALTER TABLE ' || v_owner || '.' || v_table_name || ' RENAME TO ' || v_new_table_name);
+    EXECUTE IMMEDIATE 'ALTER TABLE ' || v_owner || '.' || '"' || v_table_name || '"' || ' RENAME TO ' || v_new_table_name;  
+    DBMS_OUTPUT.PUT_LINE('Renamed table ' || v_owner || '.' || v_table_name || ' to ' || v_new_table_name);  
+    v_table_name := v_new_table_name; -- 更新表名为新的大写名称
+  ELSE
+    DBMS_OUTPUT.PUT_LINE('Table ' || v_owner || '.' || v_table_name || ' is already uppercase or not created with quotes.');  
+  END IF; 
+
+  FOR col IN (SELECT column_name, table_name, owner FROM all_tab_columns WHERE table_name = v_table_name AND owner = v_owner) LOOP  
+    -- 检查字段名是否已经是大写（精确匹配）  
+    IF col.column_name <> upper(col.column_name) THEN  
+      EXECUTE IMMEDIATE 'ALTER TABLE ' || col.owner || '.' || col.table_name || ' RENAME COLUMN "' || col.column_name || '" TO ' || '"' || upper(col.column_name) || '"';  
+      DBMS_OUTPUT.PUT_LINE('Renamed column ' || col.owner || '.' || col.table_name || '.' || col.column_name || ' to ' || upper(col.column_name));  
+    ELSE  
+      DBMS_OUTPUT.PUT_LINE('Column ' || col.owner || '.' || col.table_name || '.' || col.column_name || ' is already uppercase.');  
+    END IF;  
+  END LOOP;  
+END;

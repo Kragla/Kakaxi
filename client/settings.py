@@ -77,6 +77,21 @@ KAKAXISETTINGS = {
     'commandPaths': [ "D:/others.projects/tools/resources/CommandSettings" ]
 }
 
+# 端口转发
+PORT_FORWARD = {
+    'jumpServer': {
+            "host": "192.168.1.10",
+            "port": 22,
+            "username": "root",
+            "password": "123456"
+        },
+    'rules': [
+        '127.0.0.1:11111 -> 192.168.1.229:11111',
+        '127.0.0.1:11112 -> 192.168.1.229:11112',
+        '127.0.0.1:11113 -> 192.168.1.229:11113'
+    ]
+}
+
 # dirname(BASE_DIR) 获取BASE_DIR的父级目录
 if os.path.exists(os.path.join(os.path.dirname(BASE_DIR), 'tools_settings.json')):
     settings_file = os.path.join(os.path.dirname(BASE_DIR), 'tools_settings.json')
@@ -92,6 +107,8 @@ if os.path.exists(os.path.join(os.path.dirname(BASE_DIR), 'tools_settings.json')
             PRIVATEKEY = data['privatekey']
         if 'kakaxi' in data:
             KAKAXISETTINGS = data['kakaxi']
+        if 'portforward' in data:
+            PORT_FORWARD = data['portforward']
 
 
 if __name__ == '__main__':

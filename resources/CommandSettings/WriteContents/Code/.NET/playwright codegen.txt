@@ -1,0 +1,1 @@
+playwright codegen --browser chromium --channel msedge --output .\client\autoweb.py

@@ -1,7 +1,7 @@
 var accessToken = context.HttpContext.GetTokenAsync("access_token").GetAwaiter().GetResult();
-string identityServerBaseUrl = _configuration.GetValue<string>("Iduo:Swagger:IdentityServerBaseUrl");
-string apiName = _configuration.GetValue<string>("Iduo:Swagger:OidcApiName");
-string apiSecret = _configuration.GetValue<string>("Iduo:Swagger:ApiSecret");
+string identityServerBaseUrl = _configuration.GetValue<string>("Swagger:IdentityServerBaseUrl");
+string apiName = _configuration.GetValue<string>("Swagger:OidcApiName");
+string apiSecret = _configuration.GetValue<string>("Swagger:ApiSecret");
 var disco = _httpClient.GetDiscoveryDocumentAsync(identityServerBaseUrl).GetAwaiter().GetResult();
 // /connect/introspect
 var result = _httpClient.IntrospectTokenAsync(new TokenIntrospectionRequest

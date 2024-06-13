@@ -1,0 +1,1 @@
+string.Join(' ', context.RequestedResources.ParsedScopes.Select(x => x.RawValue))

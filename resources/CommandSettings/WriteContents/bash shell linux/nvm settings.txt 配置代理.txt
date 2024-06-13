@@ -1,2 +1,0 @@
-node_mirror:npm.taobao.org/mirrors/node/
-npm_mirror:npm.taobao.org/mirrors/npm/

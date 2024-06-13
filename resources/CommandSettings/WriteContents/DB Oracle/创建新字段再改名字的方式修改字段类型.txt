@@ -1,0 +1,8 @@
+--增加大字段项
+alter table tableName add hehe clob;
+--将需要改成大字段的项内容copy到大字段中
+update tableName set hehe=ASSetsinvestment;
+--删除原有字段
+alter table tableName drop column ASSetsinvestment;
+--将大字段名改成原字段名
+alter table tableName rename column hehe to ASSetsinvestment;

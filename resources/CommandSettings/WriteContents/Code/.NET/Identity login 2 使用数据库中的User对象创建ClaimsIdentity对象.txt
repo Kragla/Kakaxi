@@ -1,0 +1,5 @@
+// [FromServices] SignInManager<IdentityUser> signinManager
+IdentityUser user = new() { UserName = "zhangsan", Email = "zhangsan@example.com" };
+var identity = await UserManager.CreateIdentityAsync(user, DefaultAuthenticationTypes.ApplicationCookie);
+ClaimsPrincipal principal = new(identity);
+HttpContext.Current.User = principal;

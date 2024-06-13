@@ -1,4 +1,6 @@
 var countdown = 3;
+document.querySelector('#countdown').innerHTML = '<a href="/" class="btn btn-link" value="forgot">' + countdown + '秒后跳转</a>';
+
 var timer = setInterval(function () {
     countdown--;
     document.querySelector('#countdown').innerHTML = '<a href="/" class="btn btn-link" value="forgot">' + countdown + '秒后跳转</a>';

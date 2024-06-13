@@ -1,0 +1,6 @@
+var claims = new List<Claim>();
+claims.Add(new(ClaimTypes.Name, "zhangsan"));
+claims.Add(new(ClaimTypes.Role, "Users"));
+var identity = new ClaimsIdentity(claims, "MyClaimsLogin");
+ClaimsPrincipal principal = new(identity);
+HttpContext.Current.User = principal;

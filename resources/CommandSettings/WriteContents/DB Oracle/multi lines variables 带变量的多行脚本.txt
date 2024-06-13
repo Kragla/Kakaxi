@@ -1,0 +1,5 @@
+declare 
+  v_clob clob :='>4000很长的一段文字'; 
+begin 
+  insert into tablename values(1,v_clob); 
+end; 

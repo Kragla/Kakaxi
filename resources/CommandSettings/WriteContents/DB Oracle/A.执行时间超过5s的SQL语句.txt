@@ -1,0 +1,20 @@
+selec * from (
+select *
+  from (select v.sql_id,
+               v.sql_text,
+               v.sql_fulltext,
+               v.FIRST_LOAD_TIME,
+               v.last_load_time,
+               v.elapsed_time,
+               v.cpu_time,
+               v.disk_reads,
+               v.EXECUTIONS,
+               v.LOADS,
+               v.cpu_time / v.executions / 1000 / 1000 ave_cpu_time,
+               v.ELAPSED_TIME / v.executions / 1000 / 1000 ave_time,
+               v.OPTIMIZER_MODE,
+               v.OPTIMIZER_COST,
+               v.SERVICE
+          from v$sql v) a
+ where a.last_LOAD_TIME > '2015-11-09/09:24:47'  and ave_time > 3 and a.executions > 0 order by ave_time desc)
+where rownum < 6;

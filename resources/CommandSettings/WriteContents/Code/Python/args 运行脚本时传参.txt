@@ -1,0 +1,1 @@
+args = sys.argv # args[0] 整个启动脚本; args[1] 第一个参数

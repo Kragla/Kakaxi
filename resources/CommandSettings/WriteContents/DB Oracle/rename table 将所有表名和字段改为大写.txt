@@ -1,0 +1,26 @@
+DECLARE  
+  v_table_name VARCHAR2(100) := '';  
+  v_owner      VARCHAR2(100) := 'XXX'; -- 替换为你的模式名  
+  v_new_table_name VARCHAR2(100); 
+BEGIN  
+    -- 使用ALL_TABLES来遍历指定模式的表  
+    FOR t IN (SELECT table_name FROM all_tables WHERE owner = v_owner) LOOP  
+        v_table_name := t.table_name;  
+        
+        IF v_table_name <> UPPER(v_table_name) THEN
+          EXECUTE IMMEDIATE 'ALTER TABLE ' || v_owner || '.' || '"' || v_table_name || '"' || ' RENAME TO ' || '"' || UPPER(v_table_name) || '"';  
+          DBMS_OUTPUT.PUT_LINE('Renamed table ' || v_owner || '.' || v_table_name || ' to ' || v_new_table_name);  
+          v_table_name := UPPER(v_table_name); -- 更新表名为新的大写名称
+        END IF;
+        
+        FOR col IN (SELECT column_name, table_name, owner FROM all_tab_columns WHERE table_name = v_table_name AND owner = v_owner) LOOP
+          -- 检查字段名是否已经是大写
+          IF col.column_name <> upper(col.column_name) THEN
+            EXECUTE IMMEDIATE 'ALTER TABLE ' || col.owner || '.' || '"' || col.table_name || '"' || ' RENAME COLUMN "' || col.column_name || '" TO ' || '"' || upper(col.column_name) || '"';
+            DBMS_OUTPUT.PUT_LINE('Renamed column ' || col.owner || '.' || col.table_name || '.' || col.column_name || ' to ' || upper(col.column_name));
+          ELSE  
+            DBMS_OUTPUT.PUT_LINE('Column ' || col.owner || '.' || col.table_name || '.' || col.column_name || ' is already uppercase.');  
+          END IF;  
+        END LOOP;
+    END LOOP;  
+END; 

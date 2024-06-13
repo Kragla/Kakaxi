@@ -1,0 +1,11 @@
+string defaultConnectionString = config.GetConnectionString("Default") ?? throw new Exception("connectiong string missing");
+builder.Services.AddDbContext<MyDbContext>(options =>
+{
+    options.EnableSensitiveDataLogging(true);
+    options.UseSqlServer(defaultConnectionString, optionsBuilder =>
+    {
+        var databaseType = DbHelper.GetDatabaseType(defaultConnectionString);
+        string migrationAssembly = $"Xxx.Xxx.EFMigration{databaseType}";
+        optionsBuilder.MigrationsAssembly(migrationAssembly);
+    });
+});
