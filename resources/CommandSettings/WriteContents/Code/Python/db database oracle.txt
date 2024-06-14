@@ -1,0 +1,68 @@
+class DbHelper:
+    def __init__(self, username, password, dsn):
+        # oracle11需要此客户端, 需要解开注释并指定客户端位置, 否则报错
+        # oracledb.init_oracle_client(lib_dir=r"./instantclient_11_2")
+        # 初始化连接
+        self.pool = oracledb.create_pool(user=username, password=password, dsn=dsn, min=2, max=100, increment=1)
+    
+    
+    # 查询数据
+    def execute_query(self, query, params=None):
+        # Acquire 连接到池
+        connection = self.pool.acquire()
+
+        # 使用连接池
+        result = None
+        with connection.cursor() as cursor:
+            cursor.execute(query, parameters=params)
+            result = cursor.fetchall()
+
+        # 释放连接池
+        self.pool.release(connection)
+
+        # 关闭连接池
+        self.pool.close()
+
+        return result
+
+    # 查询数据并处理每一条数据
+    def execute_query_with_handler(self, query, row_handler, row_max=0, params=None):
+        # Acquire 连接到池
+        connection = self.pool.acquire()
+
+        # 使用连接池
+        with connection.cursor() as cursor:
+            cursor.execute(query, parameters=params)
+            row = cursor.fetchone()
+            row_number = 0
+            while row:
+                row_number += 1
+                row_handler(row)
+                if row_max > 0 and row_number >= row_max:
+                    break
+                row = cursor.fetchone()
+
+        # 释放连接池
+        self.pool.release(connection)
+
+        # 关闭连接池
+        self.pool.close()
+    
+    # 执行SQL语句
+    def execute_non_query(self, query, params=None):
+        connection = self.pool.acquire()
+
+        # 使用连接池
+        result = 0
+        with connection.cursor() as cursor:
+            cursor.execute(query, parameters=params)
+            connection.commit()
+            result = cursor.rowcount
+
+        # 释放连接池
+        self.pool.release(connection)
+
+        # 关闭连接池
+        self.pool.close()
+
+        return result

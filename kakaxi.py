@@ -7,9 +7,7 @@
 
 # # CPU 0.1%; MEM: 32MB
 import keyboard
-import tkinter
-from tkinter import ttk
-from tkinter import messagebox
+from tkinter import Tk, END, messagebox
 from TkinterComponents.Select import InputSelect
 import pyautogui
 import cv2
@@ -54,6 +52,10 @@ class Kakaxi(object):
         self.main_window = None
         self.scripts_dic = {}
         self.all_options = None
+
+        self.timer = None
+        self.last_pressed_key = None
+        self.last_input_value = None
         
 
     def add_hotkey(self):
@@ -111,15 +113,17 @@ class Kakaxi(object):
 
     def show(self):
         # 主窗口
-        self.main_window = tkinter.Tk()
+        self.main_window = Tk()
         self.main_window.title(WINDOW_TITLE)
         
         # self.key_combobox = ttk.Combobox(self.main_window, values=self.all_options, width=100)
         # self.key_combobox.grid(row=0, column=0, padx=10, pady=10, ipadx=40, ipady=0)
         # self.key_combobox.focus_set()  # 设置焦点到key_combobox
 
-        self.key_combobox = InputSelect(self, self.main_window, self.all_options, 100)
-        self.key_combobox.on_enter_pressed = self.run
+        self.key_combobox = InputSelect(self.main_window, self.all_options, 100)
+        # self.key_combobox.on_enter_pressed = self.run
+        # 给input绑定键盘输入事件
+        self.key_combobox.ipt.bind('<KeyRelease>', lambda event: self.__ipt_change(event))
         
         # def on_enter(event):
         #     text = event.widget.get()
@@ -153,7 +157,6 @@ class Kakaxi(object):
         # 设置不透明度
         self.main_window.attributes("-alpha", 0.6)
         self.main_window.config(background='#000000')
-        # self.main_window.overrideredirect(True)
 
         self.main_window.mainloop()
 
@@ -161,22 +164,128 @@ class Kakaxi(object):
     def set_location(self):
         # 获取屏幕宽度和高度
         screen_width = self.main_window.winfo_screenwidth()
-        # screen_height = self.main_window.winfo_screenheight()
-        
-        # 计算窗口的宽度和高度
-        self.main_window.update()  # 更新窗口信息
+
+        # 计算窗口的宽度和高度, 计算前需要先调用update()方法更新窗口信息, 否则计算结果不正确
+        self.main_window.update()
         window_width = self.main_window.winfo_width()
-        window_height = self.main_window.winfo_height()
 
         # 计算窗口位置的 x 和 y 坐标
         x = (screen_width - window_width) // 2
-        y = 100  # 距离屏幕顶部的距离
+        y = 35  # 距离屏幕顶部的距离
+        win_position = f"+{x}+{y}"
 
-        # 设置窗口位置
-        self.main_window.geometry(f"{window_width}x{window_height}+{x}+{y}")
+        # 设置窗口位置(不设置尺寸, 让其宽高自适应)
+        self.main_window.geometry(f"{win_position}")
+    
+
+    def __ipt_change(self, event):
+        # 当前按下的键
+        key = event.keysym
+        self.last_pressed_key = key
+        if (key == "Up" and self.key_combobox.lb.size() > 0):
+            if self.key_combobox.lb.size() == 0:
+                return
+            self.on_ipt_up()
+            self.key_combobox.set_ipt_value(self.key_combobox.lb.selection_get())
+            return
+        if (key == "Down" and self.key_combobox.lb.size() > 0):
+            self.on_ipt_down()
+            self.key_combobox.set_ipt_value(self.key_combobox.lb.selection_get())
+            return
+
+        # 获取当前输入框的值, 空则不处理
+        value = event.widget.get()
+
+        if key == "Return":
+            selected_txt = self.key_combobox.lb.selection_get()
+            if selected_txt:
+                self.key_combobox.set_ipt_value(selected_txt)
+                self.run(selected_txt)
+            return
+
+        # value为空, 并且按键按的不是Backspace
+        if not value and key != "BackSpace":
+            return
+        # 有新值, 需要更新last_input_value
+        if not self.last_input_value or self.last_input_value != value:
+            self.last_input_value = value
+            # 只有在有新值的情况下才需要取消之前的定时器(针对出现了额外获取了多余的键值触发了事件就会错误的取消计时器导致输入了值却不进行过滤)
+            if self.timer:
+                self.key_combobox.ipt.after_cancel(self.timer)
+            # value是新值则处理, 否则不处理
+            self.last_input_value = value
+            self.timer = self.key_combobox.ipt.after(500, lambda: self.__filter_selections(value))
+
+
+    def on_ipt_up(self):
+        current_indexes = self.key_combobox.lb.curselection()
+        should_select_index = -1
+        if len(current_indexes) > 0:
+            current_index = current_indexes[0]
+            self.key_combobox.lb.selection_clear(current_index)
+            if current_index == 0:
+                # 选中最后一个
+                should_select_index = self.key_combobox.lb.size() - 1
+            else:
+                # 选中前一个
+                should_select_index = current_index - 1
+        else:
+            # 选中最后一个
+            should_select_index = self.key_combobox.lb.size() - 1
+
+        self.key_combobox.select_lb_item(should_select_index)
+
+    def on_ipt_down(self):
+        current_indexes = self.key_combobox.lb.curselection()
+        should_select_index = -1
+        if len(current_indexes) > 0:
+            current_index = current_indexes[0]
+            self.key_combobox.lb.selection_clear(current_index)
+            if current_index == self.key_combobox.lb.size() - 1:
+                # 选中第一个
+                should_select_index = 0
+            else:
+                # 选中后一个
+                should_select_index = current_index + 1
+        else:
+            should_select_index = 0
+        
+        self.key_combobox.select_lb_item(should_select_index)
+    
+
+    def __filter_selections(self, value):
+        print(f'__filter_selections: {value}')
+        self.key_combobox.lb.delete(0, END)
+        
+        matches = self.key_combobox.selections
+        if value:
+            keywords = value.split(' ')
+            for keyword in keywords:
+                if keyword:
+                    matches =  [option for option in matches if keyword.lower() in option.lower()]
+        
+        if len(matches) > 0:
+            for item in matches:
+                self.key_combobox.lb.insert(END, item)
+            self.key_combobox.show_lb()
+        else:
+            self.key_combobox.hide_lb()
+        
+        lb_size = self.key_combobox.lb.size()
+        
+        if lb_size > 0:
+            self.key_combobox.lb.config(height=lb_size)
+
+        self.key_combobox.lb.config(height=min(20, self.key_combobox.lb.size()))
+        
+        # 选中第一个
+        self.key_combobox.lb.selection_clear(0, END)
+        self.key_combobox.select_lb_item(0)
+        if self.key_combobox.lb.size() > 0:
+            self.key_combobox.lb.selection_set(0)
+
 
     def run(self, key):
-        #key = self.key_combobox.get()
         if not key:
             return
         if key == 'reload':
@@ -187,7 +296,7 @@ class Kakaxi(object):
         if script_info is None:
             messagebox.showerror('无效的选择', key)
             return
-        
+
         # **切换窗口**
         pyautogui.hotkey('alt', 'tab')
 
