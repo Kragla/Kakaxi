@@ -56,6 +56,10 @@ class Kakaxi(object):
         self.timer = None
         self.last_pressed_key = None
         self.last_input_value = None
+
+        self.selected_key = None
+        self.selected_index = -1
+        self.selected_content = None
         
 
     def add_hotkey(self):
@@ -121,9 +125,10 @@ class Kakaxi(object):
         # self.key_combobox.focus_set()  # 设置焦点到key_combobox
 
         self.key_combobox = InputSelect(self.main_window, self.all_options, 100)
-        # self.key_combobox.on_enter_pressed = self.run
-        # 给input绑定键盘输入事件
+        # 给Entry绑定键盘输入事件
         self.key_combobox.ipt.bind('<KeyRelease>', lambda event: self.__ipt_change(event))
+        # 给Text绑定回车事件, 触发Entry的回车事件
+        self.key_combobox.area.bind('<Return>', lambda event: self.run())
         
         # def on_enter(event):
         #     text = event.widget.get()
@@ -155,7 +160,7 @@ class Kakaxi(object):
         self.set_location()
 
         # 设置不透明度
-        self.main_window.attributes("-alpha", 0.6)
+        self.main_window.attributes("-alpha", 0.8)
         self.main_window.config(background='#000000')
 
         self.main_window.mainloop()
@@ -186,25 +191,24 @@ class Kakaxi(object):
             if self.key_combobox.lb.size() == 0:
                 return
             self.on_ipt_up()
-            self.key_combobox.set_ipt_value(self.key_combobox.lb.selection_get())
             return
         if (key == "Down" and self.key_combobox.lb.size() > 0):
             self.on_ipt_down()
-            self.key_combobox.set_ipt_value(self.key_combobox.lb.selection_get())
             return
 
         # 获取当前输入框的值, 空则不处理
         value = event.widget.get()
 
         if key == "Return":
-            selected_txt = self.key_combobox.lb.selection_get()
-            if selected_txt:
-                self.key_combobox.set_ipt_value(selected_txt)
-                self.run(selected_txt)
+            self.run()
             return
 
         # value为空, 并且按键按的不是Backspace
         if not value and key != "BackSpace":
+            return
+        
+        # 输入框没有改变
+        if self.selected_key == value:
             return
         # 有新值, 需要更新last_input_value
         if not self.last_input_value or self.last_input_value != value:
@@ -230,10 +234,10 @@ class Kakaxi(object):
                 # 选中前一个
                 should_select_index = current_index - 1
         else:
-            # 选中最后一个
+            # 选中最后一个python -m http.server 6699
             should_select_index = self.key_combobox.lb.size() - 1
 
-        self.key_combobox.select_lb_item(should_select_index)
+        self.select_item(should_select_index)
 
     def on_ipt_down(self):
         current_indexes = self.key_combobox.lb.curselection()
@@ -250,7 +254,7 @@ class Kakaxi(object):
         else:
             should_select_index = 0
         
-        self.key_combobox.select_lb_item(should_select_index)
+        self.select_item(should_select_index)
     
 
     def __filter_selections(self, value):
@@ -262,7 +266,7 @@ class Kakaxi(object):
             keywords = value.split(' ')
             for keyword in keywords:
                 if keyword:
-                    matches =  [option for option in matches if keyword.lower() in option.lower()]
+                    matches = [option for option in matches if keyword.lower() in option.lower()]
         
         if len(matches) > 0:
             for item in matches:
@@ -270,6 +274,7 @@ class Kakaxi(object):
             self.key_combobox.show_lb()
         else:
             self.key_combobox.hide_lb()
+            self.key_combobox.hide_area()
         
         lb_size = self.key_combobox.lb.size()
         
@@ -279,23 +284,55 @@ class Kakaxi(object):
         self.key_combobox.lb.config(height=min(20, self.key_combobox.lb.size()))
         
         # 选中第一个
-        self.key_combobox.lb.selection_clear(0, END)
-        self.key_combobox.select_lb_item(0)
+        self.select_item(0)
+
+
+    # 选中指定的listbox选项, 并显示对用的内容
+    def select_item(self, selected_index):
         if self.key_combobox.lb.size() > 0:
-            self.key_combobox.lb.selection_set(0)
+            # 选择指定项
+            self.key_combobox.select_lb_item(selected_index)
+            
+            # 记录被选项
+            self.selected_key = self.key_combobox.lb.selection_get()
+            
+            # 更新Entry
+            if self.last_pressed_key in ['Up', 'Down']:
+                self.key_combobox.set_ipt_value(self.selected_key)
+
+            # 记录备选项的索引和值/实际内容
+            self.selected_index = selected_index
+            self.selected_content = self.scripts_dic.get(self.selected_key).script_content
+
+            # 显示所选择对应的值
+            self.key_combobox.show_area(self.selected_content)
+        else:
+            self.selected_key = self.key_combobox.get_ipt_value()
+            self.selected_index = -1
+            self.selected_content = ''
 
 
-    def run(self, key):
-        if not key:
+    def run(self):
+        if len(self.key_combobox.lb.curselection()) == 0 and self.selected_index > -1:
+            self.key_combobox.lb.selection_set(self.selected_index)
+
+        if not self.selected_key:
             return
-        if key == 'reload':
+        if self.selected_key == 'reload':
             self.load_scripts()
             messagebox.showinfo('提示', '已重新加载配置')
             return
-        script_info = self.scripts_dic.get(key)
+        
+        # self.key_combobox.set_ipt_value(self.selected_key)
+        content = self.key_combobox.get_area_content()
+        self.selected_content = content
+
+        script_info = self.scripts_dic.get(self.selected_key)
         if script_info is None:
-            messagebox.showerror('无效的选择', key)
+            messagebox.showerror('无效的选择', self.selected_key)
             return
+        if self.selected_content:
+            script_info.script_content = self.selected_content
 
         # **切换窗口**
         pyautogui.hotkey('alt', 'tab')
@@ -309,6 +346,8 @@ class Kakaxi(object):
             self.operate_keyboard_and_mouse(script_info.script_file, script_info.script_content)
         else:
             messagebox.showerror('无效的命令类型', str(script_info.script_type))
+        
+        self.key_combobox.ipt.focus_set()
         
 
     def write_content(self, text):
