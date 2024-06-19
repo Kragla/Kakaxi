@@ -38,10 +38,6 @@ pyautogui.FAILSAFE = True # 鼠标移到左上角(0,0), 将抛出异常failSafeE
 
 def main():
     kakaxi = Kakaxi()
-    # 添加热键
-    kakaxi.add_hotkey()
-    # 加载脚本数据
-    kakaxi.load_scripts()
     # 显示窗体
     kakaxi.show()
 
@@ -60,6 +56,25 @@ class Kakaxi(object):
         self.selected_key = None
         self.selected_index = -1
         self.selected_content = None
+
+        # 添加热键
+        self.add_hotkey()
+
+        # 主窗口
+        self.main_window = Tk()
+        self.main_window.title(WINDOW_TITLE)
+        
+        # self.key_combobox = ttk.Combobox(self.main_window, values=self.all_options, width=100)
+        # self.key_combobox.grid(row=0, column=0, padx=10, pady=10, ipadx=40, ipady=0)
+        # self.key_combobox.focus_set()  # 设置焦点到key_combobox
+
+        self.key_combobox = InputSelect(self.main_window, 100)
+        # 加载脚本数据
+        self.load_scripts()
+        # 给Entry绑定键盘输入事件
+        self.key_combobox.ipt.bind('<KeyRelease>', lambda event: self.__ipt_change(event))
+        # 给Text绑定回车事件, 触发Entry的回车事件
+        self.key_combobox.area.bind('<Return>', lambda event: self.run())
         
 
     def add_hotkey(self):
@@ -92,6 +107,7 @@ class Kakaxi(object):
         self.scripts_dic = {}
         self.extend_scripts_dic_from_files()
         self.all_options = list(self.scripts_dic.keys())
+        self.key_combobox.reload_items(self.all_options)
 
 
     def extend_scripts_dic_from_files(self):
@@ -116,20 +132,6 @@ class Kakaxi(object):
 
 
     def show(self):
-        # 主窗口
-        self.main_window = Tk()
-        self.main_window.title(WINDOW_TITLE)
-        
-        # self.key_combobox = ttk.Combobox(self.main_window, values=self.all_options, width=100)
-        # self.key_combobox.grid(row=0, column=0, padx=10, pady=10, ipadx=40, ipady=0)
-        # self.key_combobox.focus_set()  # 设置焦点到key_combobox
-
-        self.key_combobox = InputSelect(self.main_window, self.all_options, 100)
-        # 给Entry绑定键盘输入事件
-        self.key_combobox.ipt.bind('<KeyRelease>', lambda event: self.__ipt_change(event))
-        # 给Text绑定回车事件, 触发Entry的回车事件
-        self.key_combobox.area.bind('<Return>', lambda event: self.run())
-        
         # def on_enter(event):
         #     text = event.widget.get()
             
@@ -197,28 +199,28 @@ class Kakaxi(object):
             return
 
         # 获取当前输入框的值, 空则不处理
-        value = event.widget.get()
+        input_val = event.widget.get()
 
         if key == "Return":
             self.run()
             return
 
         # value为空, 并且按键按的不是Backspace
-        if not value and key != "BackSpace":
+        if not input_val and key != "BackSpace":
             return
         
         # 输入框没有改变
-        if self.selected_key == value:
+        if self.selected_key == input_val:
             return
         # 有新值, 需要更新last_input_value
-        if not self.last_input_value or self.last_input_value != value:
-            self.last_input_value = value
+        if not self.last_input_value or self.last_input_value != input_val:
+            self.last_input_value = input_val
             # 只有在有新值的情况下才需要取消之前的定时器(针对出现了额外获取了多余的键值触发了事件就会错误的取消计时器导致输入了值却不进行过滤)
             if self.timer:
                 self.key_combobox.ipt.after_cancel(self.timer)
             # value是新值则处理, 否则不处理
-            self.last_input_value = value
-            self.timer = self.key_combobox.ipt.after(500, lambda: self.__filter_selections(value))
+            self.last_input_value = input_val
+            self.timer = self.key_combobox.ipt.after(500, lambda: self.__filter_selections(input_val))
 
 
     def on_ipt_up(self):
@@ -259,18 +261,16 @@ class Kakaxi(object):
 
     def __filter_selections(self, value):
         print(f'__filter_selections: {value}')
-        self.key_combobox.lb.delete(0, END)
         
-        matches = self.key_combobox.selections
+        matches = self.all_options
         if value:
             keywords = value.split(' ')
             for keyword in keywords:
                 if keyword:
                     matches = [option for option in matches if keyword.lower() in option.lower()]
         
+        self.key_combobox.reload_items(matches)
         if len(matches) > 0:
-            for item in matches:
-                self.key_combobox.lb.insert(END, item)
             self.key_combobox.show_lb()
         else:
             self.key_combobox.hide_lb()
@@ -300,7 +300,7 @@ class Kakaxi(object):
             if self.last_pressed_key in ['Up', 'Down']:
                 self.key_combobox.set_ipt_value(self.selected_key)
 
-            # 记录备选项的索引和值/实际内容
+            # 记录被选项的索引和值/实际内容
             self.selected_index = selected_index
             self.selected_content = self.scripts_dic.get(self.selected_key).script_content
 

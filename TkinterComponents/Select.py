@@ -2,7 +2,7 @@ from tkinter import Frame, Entry, Text, Listbox, StringVar, END, YES
 
 
 class InputSelect(Frame):
-    def __init__(self, window, items, ipt_width):
+    def __init__(self, window, ipt_width, items=None):
         self.window = window
         self.selections = items
 
@@ -22,13 +22,19 @@ class InputSelect(Frame):
     
     def __init_list_box(self):
         self.lb = Listbox(self.window, borderwidth=0, font=('Consolas', 12))
-        
-        for item in self.selections:
-            self.lb.insert(END, item)
+        self.reload_items(self.selections)
 
     
     def __init_area(self):
         self.area = Text(self.window, height=10, highlightthickness=0, background="#333", foreground="yellow", font=('Consolas', 9))
+
+
+    def reload_items(self, items):
+        if self.lb.size() > 0:
+            self.lb.delete(0, END)
+        if items:
+            for item in items:
+                self.lb.insert(END, item)
 
 
     def set_ipt_value(self, value):
