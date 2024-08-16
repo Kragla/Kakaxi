@@ -1,0 +1,23 @@
+function doSomething(parameter1, parameter2, executeBtn) {
+    showSpinner(executeBtn);
+    fetch('/CONTROLLER/ACTION', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ parameter1, parameter2 })
+    }).then(response => {
+        if (response.ok) {
+            var rspJson = response.json();
+            return rspJson;
+        } else {
+            showErrorBox("Failed to do something: " + response.json());
+        }
+    }).then(rspJson => {
+        showMsgBox(rspJson.message ? rspJson.message : "操作成功")
+    }).catch(error => {
+        showErrorBox(error);
+    }).finally(() => {
+        closeSpinner(executeBtn);
+    });
+}

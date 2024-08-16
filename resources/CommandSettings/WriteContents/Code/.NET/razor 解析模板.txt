@@ -1,0 +1,11 @@
+string tmpl = """
+    <h1>Hello @(Model.Name)</h1>
+    @foreach(var item in Model.Books)
+    {
+        <h5>@item.Name - @item.Price</h5>
+    }
+    """;
+
+Engine.Razor.AddTemplate("Test", tmpl);
+Engine.Razor.Compile("Test");
+var result = Engine.Razor.Run("Test", null, new { Name = "张三123", Books = new List<dynamic> { new { Name = "Book1", Price = 10 }, new { Name = "Book2", Price = 20 } } });

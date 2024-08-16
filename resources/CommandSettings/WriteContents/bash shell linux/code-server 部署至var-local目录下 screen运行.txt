@@ -1,0 +1,36 @@
+#! /bin/bash
+if [ $# -eq 0 ]; then  
+    echo "Missing parameter: [Version Number]"  
+    exit 1  # A non-zero exit code indicates an error.
+fi
+version=$1
+PKG_NAME="code-server-${version}-linux-amd64"
+DOWNLOAD_DIR="/var/local/"
+DOWN_COMPRESSED_FILE_NAME="code-server.tar.gz"
+DOWN_COMPRESSED_FILE_PATH="${DOWNLOAD_DIR}${DOWN_COMPRESSED_FILE_NAME}"
+
+wget "https://github.com/coder/code-server/releases/download/v${version}/${PKG_NAME}.tar.gz" -O ${DOWN_COMPRESSED_FILE_NAME}
+#wget "https://your-download-url.com/${PKG_NAME}.tar.gz" -O "${DOWN_COMPRESSED_FILE_PATH}"
+WINDOW_CODE_SERVER=$(screen -ls | grep 'code-server' | awk '{print $1}')
+if  [ -n "$WINDOW_CODE_SERVER" ]; then
+    screen -S code-server -X quit
+    echo "Window code-server(old) has been closed"
+fi
+DIR="${DOWNLOAD_DIR}code-server"
+if [ -d "$DIR" ]; then
+    echo "Directory $DIR exists. Deleting it..."
+    rm -rf "$DIR"
+fi
+cd "${DOWNLOAD_DIR}"
+echo "The compressed file ${DOWN_COMPRESSED_FILE_NAME} is being extracted"
+tar -xf "${DOWN_COMPRESSED_FILE_NAME}"
+
+echo "Rename Directory: ${PKG_NAME} -> ${DIR}"
+mv "${DOWNLOAD_DIR}${PKG_NAME}" "$DIR"
+
+echo "run screen ..."
+screen -dmS code-server;screen -x -S code-server -p 0 -X stuff "${DIR}/bin/code-server\n"
+if [ -f "${DOWN_COMPRESSED_FILE_PATH}" ]; then
+    echo "delete compressed file ${DOWN_COMPRESSED_FILE_NAME}"
+    rm -f "${DOWN_COMPRESSED_FILE_PATH}"
+fi

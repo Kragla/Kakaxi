@@ -1,0 +1,10 @@
+const myModal = document.getElementById('myModal')
+const myInput = document.getElementById('myInput')
+
+myModal.addEventListener('shown.bs.modal', () => {
+  myInput.focus()
+})
+
+myModal.addEventListener('hidden.bs.modal', () => {
+  console.log('Modal is now hidden')
+})

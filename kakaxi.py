@@ -73,6 +73,7 @@ class Kakaxi(object):
         self.load_scripts()
         # 给Entry绑定键盘输入事件
         self.key_combobox.ipt.bind('<KeyRelease>', lambda event: self.__ipt_change(event))
+        self.key_combobox.ipt.bind('<Return>', lambda event: self.run())
         # 给Text绑定回车事件, 触发Entry的回车事件
         self.key_combobox.area.bind('<Return>', lambda event: self.run())
         
@@ -202,7 +203,9 @@ class Kakaxi(object):
         input_val = event.widget.get()
 
         if key == "Return":
-            self.run()
+            # 中文输入法回车时其实还是输入, 不希望执行run方法
+            # 中文输入法回车时会触发这里代码, 不会触发Entry的回车事件, 所以将run方法放到Entry的回车事件中
+            # self.run()
             return
 
         # value为空, 并且按键按的不是Backspace

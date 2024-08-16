@@ -1,0 +1,1 @@
+icacls "D:/Xx/xx/" /grant %username%:F /T

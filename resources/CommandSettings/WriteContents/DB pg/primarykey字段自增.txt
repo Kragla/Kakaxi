@@ -1,0 +1,3 @@
+-- 创建序列
+CREATE SEQUENCE TABLENAME_id_seq START 1000;
+-- 给Id字段设置默认值: nextval('TABLENAME_id_seq'::regclass)

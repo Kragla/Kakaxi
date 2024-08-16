@@ -1,0 +1,15 @@
+StringBuilder ipInfoBuilder = new();
+string? directIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+if (!string.IsNullOrWhiteSpace(directIp))
+{
+    ipInfoBuilder.AppendLine($"Direct Ip: {directIp}");
+}
+if (Request.Headers.TryGetValue(HeaderConstants.RealIp, out Microsoft.Extensions.Primitives.StringValues value))
+{
+    ipInfoBuilder.AppendLine($"{HeaderConstants.RealIp}：{value}");
+}
+if (Request.Headers.TryGetValue(HeaderConstants.ForwardedFor, out Microsoft.Extensions.Primitives.StringValues forwardFor))
+{
+    ipInfoBuilder.AppendLine($"{HeaderConstants.ForwardedFor}：{forwardFor}");
+}
+return Content(ipInfoBuilder.ToString());

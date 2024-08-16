@@ -1,0 +1,10 @@
+var serviceCollection = new ServiceCollection();
+
+// 配置IConfiguration, 因为需要将它添加到DI容器中, 并且其他服务也有可能会用到它(比如EF)
+var _configuration = new ConfigurationBuilder()
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+    .AddUserSecrets<Program>(true, true)
+    .Build();
+
+services.AddSingleton<IConfiguration>(_configuration);

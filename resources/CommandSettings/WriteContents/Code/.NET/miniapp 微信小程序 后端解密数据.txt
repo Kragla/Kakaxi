@@ -1,0 +1,37 @@
+public async Task<ReturnResult> MiniAppDecryptAsync(string openId, string encryptedData, string encryptIv)
+{
+    //获取登录时调用"jscode2session"接口获取并缓存的sessionKey
+    string sessionKey = await RedisHelper.GetAsync(configuration, openId);
+    //base64解码为字节数组
+    var encryptData = Convert.FromBase64String(encryptedData);
+    var key = Convert.FromBase64String(sessionKey);
+    var iv = Convert.FromBase64String(encryptIv);
+
+    //创建aes对象
+    var aes = Aes.Create();
+    //设置模式为CBC
+    aes.Mode = CipherMode.CBC;
+    try
+    {
+        //设置Key大小
+        aes.KeySize = 128;
+        //设置填充
+        aes.Padding = PaddingMode.PKCS7;
+        aes.Key = key;
+        aes.IV = iv;
+
+        //创建解密器
+        var de = aes.CreateDecryptor();
+        //解密数据
+        var decodeByteData = de.TransformFinalBlock(encryptData, 0, encryptData.Length);
+        //转换为字符串
+        var data = Encoding.UTF8.GetString(decodeByteData);
+
+        return new ReturnResult(data);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError("{ex}", ex.ToString());
+        return new ReturnResult(ReturnResultCode.Failed, null, "用户信息解析失败");
+    }
+}

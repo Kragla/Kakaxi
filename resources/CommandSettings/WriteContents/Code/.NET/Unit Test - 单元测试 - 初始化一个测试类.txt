@@ -1,0 +1,37 @@
+// 基本所有测试类都需要做这些初始化操作, 所以可将它作为基类, 所有测试类都继承这个类
+public class BaseTest
+{
+    private readonly ITestOutputHelper _outputHelper;
+    private readonly HttpClient _httpClient;
+    private IServiceProvider _services;
+    public BaseTest(ITestOutputHelper outputHelper)
+    {
+        _outputHelper = outputHelper;
+
+        // 这里的配置和测试的Api项目的Program中一致即可
+        var server = new TestServer(WebHost.CreateDefaultBuilder()
+            .ConfigureAppConfiguration((context, config) =>
+            {
+                config.SetBasePath(context.HostingEnvironment.ContentRootPath)
+                      .AddJsonFile("appsettings.json")
+                      .AddEnvironmentVariables();
+                if (context.HostingEnvironment.IsDevelopment())
+                {
+                    config.AddUserSecrets<Program>(true, true);
+                }
+            })
+            .UseUrls("http://localhost:5000")
+            // 也可以为单元测试专门编写专门的配置的Startup类: 如"TestStartup" ...
+            .UseStartup<Startup>());
+        _httpClient = server.CreateClient();
+        using HttpClient client = new();
+        string mediaType = "application/x-www-form-urlencoded";
+        string bodyContent = "client_id={OAUTH_CLIENT_ID}&client_secret=&grant_type=client_credentials";
+        HttpContent parameters = new StringContent(bodyContent, Encoding.UTF8, mediaType);
+        var response = client.PostAsync("https://{YOUR_AUTHORIZE_HOST}:4500/connect/token", parameters).GetAwaiter().GetResult();
+        var tokenInfo = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+        string token = JsonConvert.DeserializeObject<JObject>(tokenInfo)["access_token"].ToString();
+        _httpClient.SetBearerToken(token);
+        _services = server.Services;
+    }
+}

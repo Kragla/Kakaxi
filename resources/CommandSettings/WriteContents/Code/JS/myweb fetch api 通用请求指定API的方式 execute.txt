@@ -1,0 +1,11 @@
+const exeParams = {
+    'dataTableId': tableId,
+    'dataContent': `{"id": 1, "name": "张三"}`,
+    'dataExecuteUrl': '/api/CONTROLLER/ACTION',
+    'dataMethod': 'POST'
+};
+await execute(exeParams, callback, false);
+
+function callback(response) {
+    
+}

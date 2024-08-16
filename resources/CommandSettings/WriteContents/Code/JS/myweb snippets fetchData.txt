@@ -1,0 +1,11 @@
+const dataFilter = null;
+const renderElementId = 'my-table';
+const finallyAction = null;
+const response = await fetchData(`/Home/GetTableInfo`, 'POST', dataFilter, renderElementId, finallyAction);
+if (response) {
+    if (response.code === 1) {
+        // 渲染表格或者其他处理数据的逻辑
+    } else {
+        showErrorBox(response.errMsg);
+    }
+}

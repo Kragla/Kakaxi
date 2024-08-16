@@ -1,0 +1,22 @@
+stream {
+    upstream mysql {
+        hash $remote_addr consistent;
+        server 127.0.0.1:3306 weight=5 max_fails=3 fail_timeout=30s;
+    }
+    server {
+        listen 3307;
+        #allow xx.xx.xx.xx;
+        deny all;
+        proxy_connect_timeout 10s;
+        proxy_timeout 300s;
+        proxy_pass mysql;
+    }
+    server {
+        listen 63379;
+        allow xx.xx.xx.xx;
+        deny all;
+        proxy_connect_timeout 10s;
+        proxy_timeout 300s;
+        proxy_pass 127.0.0.1:6379;
+    }
+}

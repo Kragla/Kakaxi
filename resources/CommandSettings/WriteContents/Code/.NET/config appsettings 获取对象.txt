@@ -1,0 +1,1 @@
+configuration.GetSection("TARGETKEY").Get<List<string>>();

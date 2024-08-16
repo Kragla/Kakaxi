@@ -1,0 +1,11 @@
+let interval = 0;
+document.querySelector('#search-input').addEventListener('input', function (event) {
+    if (interval) {
+        clearTimeout(interval);
+    }
+    interval = setTimeout(() => {
+        this.keywords = $('#search-input').val().trim();
+        this.pageIndex = 1;
+        this.loadData();
+    }, 500);
+})

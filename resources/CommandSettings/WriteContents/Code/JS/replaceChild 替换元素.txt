@@ -1,0 +1,6 @@
+const oldEle = document.getElementById("oldEle");
+const newEle = document.createElement("div");
+newEle.textContent = "This is the new element";
+
+// 替换 oldEle 元素
+oldEle.parentNode.replaceChild(newEle, oldEle);

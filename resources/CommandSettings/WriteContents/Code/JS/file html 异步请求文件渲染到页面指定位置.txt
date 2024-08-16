@@ -1,0 +1,23 @@
+<div id="container"></div>
+<script>
+// 定义目标HTML文件的URL
+const htmlFileUrl = `${location.href.replace('index.html', '')}SPECIFIED.html`;
+
+// 使用fetch API获取HTML文件
+fetch(htmlFileUrl)
+  .then(response => {
+    // 确保请求成功
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.text(); // 将响应转换为文本
+  })
+  .then(html => {
+    // 将获取到的HTML内容插入到页面的指定元素中
+    document.querySelector('#container').innerHTML = html;
+  })
+  .catch(error => {
+    // 处理请求过程中可能出现的错误
+    console.error('There was a problem with the fetch operation:', error);
+  });
+</script>

@@ -1,0 +1,11 @@
+let options = { backdrop: true, focus: true, keyboard: true }
+//let options = { backdrop: 'static', focus: true, keyboard: true }
+const myModal = new bootstrap.Modal(document.getElementById('myModal'), options)
+//or
+//const myModalAlternative = new bootstrap.Modal('#myModal', options)
+myModal.show();
+myModal.hide();
+myModal.toggle();
+myModal.dispose();
+getInstance // Static method which allows you to get the modal instance associated with a DOM element.
+getOrCreateInstance

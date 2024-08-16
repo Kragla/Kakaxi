@@ -1,0 +1,1 @@
+data-bs-toggle="modal" data-bs-target="#TARGET_MODAL"
