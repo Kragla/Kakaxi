@@ -1,0 +1,6 @@
+cat /etc/docker/daemon.json
+{
+  "log-driver":"json-file",
+  "log-opts": {"max-size":"500m", "max-file":"3"},
+  "bip":"192.168.240.111/24"
+}

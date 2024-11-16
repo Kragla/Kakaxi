@@ -1,0 +1,4 @@
+<ItemGroup>
+ <TrimmerRootAssembly Include="System.Configuration.ConfigurationManager" />
+ <TrimmerRootAssembly Include="MySql.Data" />
+</ItemGroup>

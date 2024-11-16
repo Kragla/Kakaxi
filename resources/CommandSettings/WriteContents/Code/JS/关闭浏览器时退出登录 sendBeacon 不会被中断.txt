@@ -1,0 +1,17 @@
+// 1. 关闭/刷新时发送请求到后端
+    window.onbeforeunload = function(e) {
+        var fd = new FormData();
+        fd.append('room_id', 123);
+        // 专门用于关闭浏览器时发送http请求, 不会被中断
+        navigator.sendBeacon("/daili/public/logoutpost", fd);
+    }
+
+// 2. 后端接收到请求后, 将cookie过期时间设为3s(用户关闭页面3s后, cookie失效, 登录状态失效, 下次打开页面会就需要重新登录)
+cookie('username', cookie('username'), 3);
+cookie('userid', cookie('userid'), 3);
+cookie('sesionid', cookie('sesionid'), 3);
+
+// 3. 后端在收到请求事件时, 延长cookie; 若用户是刷新而不是关闭页面, 那么后端(将cookie过期时间设为3s后)马上就会接收到请求, 就会即时地延长cookie, 保持登录状态
+cookie('username', cookie('username'), 3600 * 24 * 30);
+cookie('userid', cookie('userid'), 3600 * 24 * 30);
+cookie('sesionid', cookie('sesionid'), 3600 * 24 * 30);

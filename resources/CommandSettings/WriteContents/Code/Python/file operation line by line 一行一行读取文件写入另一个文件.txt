@@ -1,0 +1,15 @@
+from datetime import datetime
+
+t1 = datetime.now()
+
+with open('SOURCE_FILE_PATH', 'r', encoding='utf-8') as file:
+    # 打开新文件, 写入日志
+    with open('DESTINATION_FILE_PATH', 'w', encoding='utf-8') as new_file:
+        # 逐行读取文件
+        for line in file:
+            # 处理每行数据 如果line包含了'Start request'或者包含了'Request finished', 则写入文件
+            if 'Request starting' in line or 'Request finished' in line:
+                new_file.write(line)
+
+t2 = datetime.now()
+print(f'耗时: {(t2 - t1).total_seconds()} 秒')

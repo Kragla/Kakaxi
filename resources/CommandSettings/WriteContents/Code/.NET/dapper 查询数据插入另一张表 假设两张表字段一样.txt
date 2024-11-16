@@ -1,0 +1,18 @@
+using var conn = new MySqlConnection({{CONNECTIONSTRING}});
+var records = await conn.QueryAsync({{QUERY_SQL}});
+if (records.Any())
+{
+    var first = records.First() as IDictionary<string, object>;
+    using var targetConn = new MySqlConnection("{{TARGET_CONNECTIONSTRING}}");
+
+    List<string> columns = new();
+    foreach (var item in first)
+    {
+        columns.Add(item.Key.ToString());
+    }
+    var columnsStatement = string.Join(',', columns);
+    var valuesStatement = string.Join(',', columns.Select(c => $"@{c}"));
+    var affectedRows = await targetConn.ExecuteAsync($"insert into devformmodel({columnsStatement}) values({valuesStatement})", records);
+    var res = await targetConn.ExecuteAsync(, first);
+    Console.WriteLine($"成功添加{res}行数据");
+}

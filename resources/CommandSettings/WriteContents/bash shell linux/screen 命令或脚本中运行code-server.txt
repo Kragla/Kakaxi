@@ -1,0 +1,7 @@
+#! /bin/bash
+WINDOW_CODE_SERVER=$(screen -ls | grep 'code-server' | awk '{print $1}')
+if  [ -n "$WINDOW_CODE_SERVER" ]; then
+    screen -S code-server -X quit
+    echo "Window code-server(old) has been closed"
+fi
+screen -dmS code-server;screen -x -S code-server -p 0 -X stuff "/var/local/code-server/bin/code-server\n"

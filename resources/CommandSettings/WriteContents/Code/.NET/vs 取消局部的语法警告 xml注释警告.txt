@@ -1,0 +1,5 @@
+#pragma warning disable CS1570 // XML 注释出现 XML 格式错误
+/// <summary>
+///     <para>有警告的XML</para>
+/// </summary>
+#pragma warning restore CS1570 // XML 注释出现 XML 格式错误

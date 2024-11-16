@@ -13,3 +13,10 @@ var result = _httpClient.IntrospectTokenAsync(new TokenIntrospectionRequest
     ClientSecret = apiSecret,
     Token = accessToken
 }).GetAwaiter().GetResult();
+
+if (result.IsError || !result.IsActive)
+{
+    context.Result = new ForbidResult();
+    Console.WriteLine($"token校验失败: IsActive:\"{result.IsActive}\"; Error:\"{result.Error}\"");
+    return;
+}

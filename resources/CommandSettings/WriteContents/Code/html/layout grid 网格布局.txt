@@ -1,0 +1,12 @@
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 10px;
+}
+.grid-item {
+    background-color: #ccc;
+    padding: 20px;
+    height: 100px;
+    /*background: url('https://www.example.com/image.jpg');
+    background-size: cover;*/
+}

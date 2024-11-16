@@ -1,1 +1,5 @@
 async IAsyncEnumerable<yield return 的值类型> 方法名(..)
+
+await foreach (var item in 方法名(..)) {
+    // 处理 item
+}

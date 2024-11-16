@@ -1,0 +1,80 @@
+/// <summary>
+/// 服务启动时, 将主机信息(IP)注册到服务列表(Redis缓存)中
+/// </summary>
+public class HostRegistrationService : BackgroundService
+{
+    const string key = "serverips:mywebapp";
+    static List<string> serverIpList = new();
+    /// <summary>
+    /// 后台任务的主要逻辑, 这里主要利用后台服务的StartAsync和StopAsync事件注册注销服务, 没有后台逻辑需要执行
+    /// </summary>
+    /// <param name="stoppingToken"></param>
+    /// <returns></returns>
+    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} 后台服务启动: HostRegistrationService");
+        return Task.CompletedTask;
+    }
+    /// <summary>
+    /// 服务启动时, 注册服务
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public override Task StartAsync(CancellationToken cancellationToken)
+    {
+        IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
+        var ipAddresses = ipHost.AddressList.Select(x => x.ToString()).Where(x => Regex.IsMatch(x, @"\d+\.\d+\.\d+\.\d+")).ToList();
+        serverIpList = ipAddresses;
+
+        string serverips = string.Join(",", ipAddresses);
+        string cached = RedisHelper.Instance.Get(key);
+        if (string.IsNullOrWhiteSpace(cached))
+        {
+            RedisHelper.Instance.Set(key, serverips, -1);
+            Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} Server ip registed, update cache: {serverips}");
+        }
+        else
+        {
+            var cachedIps = cached.Split(',').ToList();
+            bool isChanged = false;
+            foreach (var serverIp in ipAddresses)
+            {
+                if (!cachedIps.Contains(serverIp))
+                {
+                    cachedIps.Add(serverIp);
+                    isChanged = true;
+                }
+            }
+            if (isChanged)
+            {
+                string newServerIps = string.Join(",", cachedIps);
+                Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} Server ip registed, update cache: {newServerIps}");
+                RedisHelper.Instance.Set(key, newServerIps, -1);
+            }
+        }
+        return base.StartAsync(cancellationToken);
+    }
+    /// <summary>
+    /// 服务停止时, 注销服务
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public override Task StopAsync(CancellationToken cancellationToken)
+    {
+        string serverIps = RedisHelper.Get(key);
+        int cachedLength = serverIps.Length;
+        foreach (var serverIp in serverIpList)
+        {
+            if (!string.IsNullOrWhiteSpace(serverIps))
+            {
+                serverIps = serverIps.Replace($"{serverIp},", string.Empty).Replace(serverIp, string.Empty);
+            }
+        }
+        if (cachedLength > serverIps.Length)
+        {
+            Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} Server ip unregisted, update cache: {serverIps}");
+            RedisHelper.Instance.Set(key, serverIps, -1);
+        }
+        return base.StopAsync(cancellationToken);
+    }
+}

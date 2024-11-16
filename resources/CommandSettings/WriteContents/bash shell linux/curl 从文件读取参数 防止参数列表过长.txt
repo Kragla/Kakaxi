@@ -1,0 +1,1 @@
+cat parameters.json | curl 'https://Xxx/api/xxx/xxx' -H 'Content-Type: application/json' -H 'Authorization: Bearer F9EEE535205EC2D996F43BEC317870F22A362191C1338EE34D15829BABC9EBAB' -d @-

@@ -1,0 +1,3 @@
+-- 复制TARGET_TABLE表结构到TARGET_TABLE_NEW
+INSERT INTO TARGET_TABLE_NEW select * from TARGET_TABLE as of timestamp to_timestamp('恢复数据的时间点', 'yyyy-mm-dd hh24:mi:ss');
+-- 然后将TARGET_TABLE表名修改为TARGET_TABLE_BAK, 再将TARGET_TABLE_NEW改为TARGET_TABLE

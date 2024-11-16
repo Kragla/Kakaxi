@@ -1,0 +1,3 @@
+$userIds = $users->each(function($v, $k) {
+    return $v['id'];
+});

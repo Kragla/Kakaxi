@@ -1,0 +1,16 @@
+using HttpClient client = new();
+var response = await client.GetAsync({下载地址});
+if (response.StatusCode != HttpStatusCode.OK)
+{
+    Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} 下载失败: {response.ReasonPhrase}");
+    Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {await response.Content.ReadAsStringAsync()}");
+    return false;
+}
+
+await using (var fs = new FileStream({下载的zip压缩包文件路径}, FileMode.Create, FileAccess.Write, FileShare.None))
+{
+    await response.Content.CopyToAsync(fs);
+}
+
+Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} 下载完成");
+return true;

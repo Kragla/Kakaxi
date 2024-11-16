@@ -1,5 +1,6 @@
 from datetime import datetime
 import os
+import re
 from client.file_utils import Uploader, get_path_separator
 from client.settings import PROJECTS, ENCODING, UPLOAD, PRIVATEKEY
 from client.ssh_conn import SSHConnection
@@ -51,7 +52,7 @@ def main():
         'datetime_short': { 'value': datetime.now().strftime("%y%m%d%H%M"), 'ignore_source_when_empty': False },
     }
     variables = UPLOAD['variables']
-    fill_datacontext_by_user_input(variables, data_context)
+    fill_datacontext_by_user_input(variables, data_context, version_controller)
 
     executingListFlowGroups = {
         "before_cmds": UPLOAD["before_cmds"],
@@ -122,9 +123,17 @@ def main():
 
 
 # 用户指定变量值
-def fill_datacontext_by_user_input(variables, data_context):
+def fill_datacontext_by_user_input(variables, data_context, version_controller):
     for item in variables:
         current = input(f'请输入{item["name"]}:')
+        if not current and item["name"] == 'version name':
+            with open(version_controller, 'r', encoding=ENCODING) as file:
+                content = file.read()
+                matches = re.compile(r'dev\.v\d+\.\d+\.\d+').findall(content)
+                if matches:
+                    current = matches[-1]
+                    print(f'自动获取版本号: {current}')
+
         data_context[item["name"]] = {
             'value': current,
             'ignore_source_when_empty': item['ignore_source_when_empty']

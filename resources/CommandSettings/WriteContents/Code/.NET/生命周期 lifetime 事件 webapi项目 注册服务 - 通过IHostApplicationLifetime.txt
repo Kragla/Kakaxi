@@ -1,0 +1,65 @@
+/// <summary>
+/// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+/// </summary>
+/// <param name="app"></param>
+/// <param name="env"></param>
+/// <param name="lifetime">获取设置IHost的生命周期事件</param>
+public void Configure(IApplicationBuilder app, IHostEnvironment env, IHostApplicationLifetime lifetime)
+{
+    lifetime.ApplicationStarted.Register(() =>
+    {
+        IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
+        var ipAddresses = ipHost.AddressList.Select(x => x.ToString()).Where(x => Regex.IsMatch(x, @"\d+\.\d+\.\d+\.\d+")).ToList();
+        serverIpList = ipAddresses;
+
+        string serverips = string.Join(",", ipAddresses);
+        string cached = RedisHelper.Instance.Get(key);
+        if (string.IsNullOrWhiteSpace(cached))
+        {
+            RedisHelper.Instance.Set(key, serverips, -1);
+            Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} Server ip registed, update cache: {serverips}");
+        }
+        else
+        {
+            var cachedIps = cached.Split(',').ToList();
+            bool isChanged = false;
+            foreach (var serverIp in ipAddresses)
+            {
+                if (!cachedIps.Contains(serverIp))
+                {
+                    cachedIps.Add(serverIp);
+                    isChanged = true;
+                }
+            }
+            if (isChanged)
+            {
+                string newServerIps = string.Join(",", cachedIps);
+                Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} Server ip registed, update cache: {newServerIps}");
+                RedisHelper.Instance.Set(key, newServerIps, -1);
+            }
+        }
+    });
+    lifetime.ApplicationStopped.Register(() =>
+    {
+        string serverIps = RedisHelper.Get(key);
+        int cachedLength = serverIps.Length;
+        foreach (var serverIp in serverIpList)
+        {
+            if (!string.IsNullOrWhiteSpace(serverIps))
+            {
+                serverIps = serverIps.Replace($"{serverIp},", string.Empty).Replace(serverIp, string.Empty);
+            }
+        }
+        if (cachedLength > serverIps.Length)
+        {
+            Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} Server ip unregisted, update cache: {serverIps}");
+            RedisHelper.Instance.Set(key, serverIps, -1);
+        }
+    });
+
+    //if (env.IsDevelopment())
+    //{
+    //    app.UseDeveloperExceptionPage();
+    //}
+    ...
+}

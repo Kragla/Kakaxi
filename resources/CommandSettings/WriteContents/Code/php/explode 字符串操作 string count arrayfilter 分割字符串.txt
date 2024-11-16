@@ -1,0 +1,7 @@
+$string = 'apple,banana,,orange,,grape,';
+// 使用explode函数将字符串分隔成数组
+$array = explode(',', $string);
+// 移除数组中的空元素
+$array = array_filter($array);
+// 获取数组的元素个数
+$count = count($array);

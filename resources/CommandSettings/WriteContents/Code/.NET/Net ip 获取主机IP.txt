@@ -1,0 +1,7 @@
+// 解析主机名 - 获取内网IP
+string hostName = Dns.GetHostName();
+// 域名域名
+//string hostName = "www.baidu.com";
+
+IPHostEntry ipHost = Dns.GetHostEntry(hostName);
+var ipAddresses = ipHost.AddressList.Select(x => x.ToString()).Where(x => Regex.IsMatch(x, @"\d+\.\d+\.\d+\.\d+")).Where(x => x.Length > 7).ToList();

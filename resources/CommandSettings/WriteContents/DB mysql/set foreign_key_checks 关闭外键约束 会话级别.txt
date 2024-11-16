@@ -1,0 +1,4 @@
+SET foreign_key_checks=0;
+-- 以下操作会关闭外键约束
+
+SET foreign_key_checks=1;

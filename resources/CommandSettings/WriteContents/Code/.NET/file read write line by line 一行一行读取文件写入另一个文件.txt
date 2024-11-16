@@ -1,0 +1,18 @@
+#!/usr/bin/env dotnet-script
+using System;
+using System.IO;
+using System.Threading.Tasks;
+
+var start = DateTime.Now;
+using (StreamReader sr = new StreamReader("SOURCE_FILE_PATH")) {
+    using (StreamWriter sw = new StreamWriter("DESTINATION_FILE_PATH")) {
+        while (!sr.EndOfStream) {
+            var line = await sr.ReadLineAsync();
+            if (line is not null && (line.Contains("Request start") || line.Contains("Request finish")))
+            {
+                await sw.WriteLineAsync(line);
+            }
+        }
+        System.Console.WriteLine($"End: {(DateTime.Now - start).TotalSeconds}/s");
+    }
+}

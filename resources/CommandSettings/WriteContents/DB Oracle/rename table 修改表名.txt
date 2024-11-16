@@ -1,0 +1,2 @@
+alter table "TARGET_TABLE"  rename to "TARGET_TABLE_BAK"
+alter table "TARGET_TABLE_copy1"  rename to "TARGET_TABLE

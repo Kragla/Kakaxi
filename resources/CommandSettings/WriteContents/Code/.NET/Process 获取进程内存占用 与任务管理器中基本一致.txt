@@ -1,0 +1,20 @@
+var p = Process.GetCurrentProcess();
+// 创建对 CPU 占用百分比的性能计数器。
+var cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+var t1 = DateTime.Now;
+var timeSpent1 = cpuCounter.NextValue();
+
+// 性能计数器 - 占用内存
+PerformanceCounter ramCounter = new PerformanceCounter("Process", "Working Set - Private", p.ProcessName);
+// 性能计数器 - 可用内存
+PerformanceCounter availableRamCounter = new PerformanceCounter("Memory", "Available MBytes");
+
+Console.WriteLine($"该进程所占内存为：{ ramCounter.NextValue() / 1024 / 1024}MB");
+Console.WriteLine($"可用内存为：{availableRamCounter.NextValue() / 1024 }GB");
+
+var t2 = DateTime.Now;
+var totalSpent = (t2 - t1).TotalMilliseconds;
+
+var timeSpent2 = cpuCounter.NextValue();
+Console.WriteLine($"该进程运行时间为：{totalSpent}毫秒");
+Console.WriteLine($"该进程CPU占用率为：{(timeSpent2 - timeSpent1) * 100 / totalSpent}%");

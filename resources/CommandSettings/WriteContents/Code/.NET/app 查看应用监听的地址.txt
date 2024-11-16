@@ -1,0 +1,8 @@
+var features = app.Properties["server.Features"] as FeatureCollection;
+var listenerFeature = features.Get<IServerAddressesFeature>();
+var addresses = listenerFeature.Addresses;
+foreach (var address in addresses)
+{
+    // Listening on http://+:80
+    Console.WriteLine($"Listening on {address}");
+}

@@ -1,0 +1,1 @@
+var accessToken = await context.HttpContext.GetTokenAsync("access_token");

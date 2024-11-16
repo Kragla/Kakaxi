@@ -1,0 +1,92 @@
+public class ConsulBackgroundService : BackgroundService
+{
+    private readonly string? ServiceId;
+
+    private readonly string? CheckId;
+
+    private readonly IConsulClient? _consulClient;
+
+    private readonly AgentServiceRegistration? _registration;
+
+    private readonly ConsulOptions consulOptions;
+
+    public ConsulBackgroundService(IConfiguration configuration)
+    {
+        consulOptions = new ConsulOptions
+        {
+            Ip = configuration["consul_client_ip"] ?? configuration["Consul:ConsulOptions:ip"],
+            Port = configuration["consul_client_port"] ?? configuration["Consul:ConsulOptions:Port"],
+            ServerName = configuration["consul_client_name"] ?? configuration["Consul:ConsulOptions:ServerName"],
+            ConsulHost = configuration["consul_server_host"] ?? configuration["Consul:ConsulOptions:ConsulHost"],
+            ConsulDataCenter = configuration["consul_data_center"] ?? configuration["Consul:ConsulOptions:ConsulDataCenter"],
+            // token配置
+            Token = configuration["consul_token"] ?? configuration["Consul:ConsulOptions:Token"]
+        };
+        Console.WriteLine($"ConsulOptions: {consulOptions.ToJson()}");
+        if (!string.IsNullOrEmpty(consulOptions.ConsulHost) && consulOptions.ConsulHost.Contains("http"))
+        {
+            ServiceId = DateTime.Now.ToString("yyyyMMddHHmmss") + consulOptions.Ip.Replace("http://", "").Replace("https://", "") + ":" + consulOptions.Port;
+            CheckId = "ttl-" + ServiceId;
+            _registration = new AgentServiceRegistration
+            {
+                ID = ServiceId,
+                Name = consulOptions.ServerName,
+                Address = consulOptions.Ip.Replace("http://", "").Replace("https://", ""),
+                Port = Convert.ToInt32(consulOptions.Port)
+            };
+            _consulClient = new ConsulClient(clientConfiguration =>
+            {
+                clientConfiguration.Address = new Uri(consulOptions.ConsulHost);
+                clientConfiguration.Datacenter = consulOptions.ConsulDataCenter;
+                // token配置
+                clientConfiguration.Token = consulOptions.Token;
+            });
+        }
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        if (_consulClient is not null)
+        {
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                await _consulClient.Agent.PassTTL(CheckId, string.Empty, stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(5.0), stoppingToken);
+            }
+        }
+    }
+
+    public override async Task StartAsync(CancellationToken cancellationToken)
+    {
+        if (_registration is not null && _consulClient is not null)
+        {
+            // 注册服务前先注销服务
+            await _consulClient.Agent.ServiceDeregister(_registration.ID, cancellationToken);
+            await _consulClient.Agent.ServiceRegister(_registration, cancellationToken);
+            await _consulClient.Agent.CheckRegister(new AgentCheckRegistration
+            {
+                ID = CheckId,
+                Name = "TTL",
+                ServiceID = ServiceId,
+                TTL = TimeSpan.FromSeconds(240.0),
+                DeregisterCriticalServiceAfter = TimeSpan.FromHours(1.0)
+            }, cancellationToken);
+            await base.StartAsync(cancellationToken);
+            Console.WriteLine("Consul注册成功,配置信息:" + consulOptions.ToJson());
+        }
+        else
+        {
+            Console.WriteLine("Consul注册失败,配置信息:" + consulOptions.ToJson());
+        }
+    }
+
+    public override async Task StopAsync(CancellationToken cancellationToken)
+    {
+        if (_consulClient is not null && _registration is not null)
+        {
+            await _consulClient.Agent.ServiceDeregister(_registration.ID, cancellationToken);
+            await _consulClient.Agent.CheckDeregister(CheckId, cancellationToken);
+            await base.StopAsync(cancellationToken);
+        }
+    }
+}

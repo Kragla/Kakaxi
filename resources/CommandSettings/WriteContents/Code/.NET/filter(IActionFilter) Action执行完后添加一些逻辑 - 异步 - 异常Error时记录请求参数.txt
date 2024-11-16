@@ -1,0 +1,47 @@
+public class LogContentFilter : IAsyncActionFilter
+{
+    // 依赖注入一些服务
+    //public LogContentFilter()
+    //{
+    //}
+
+    public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+    {
+        var executedContext = await next();
+        if (executedContext.Exception is not null)
+        {
+            Console.WriteLine($"Logging On ActionExecuted Exception: {executedContext.Exception.Message}");
+
+            // 记录查询参数
+            foreach (var item in executedContext.HttpContext.Request.Query)
+            {
+                Console.WriteLine($"Logging On ActionExecuted From Query: {item.Key} - {item.Value}");
+            }
+
+            if (executedContext.HttpContext.Request.HasFormContentType)
+            {
+                // FromForm 读取表单数据
+                foreach (var item in executedContext.HttpContext.Request.Form)
+                {
+                    Console.WriteLine($"Logging On ActionExecuted From Form: {item.Key} - {item.Value}");
+                }
+            }
+            else
+            {
+                // 最常见的Api参数: Post请求, 默认是FromBody参数(json参数)
+                if (executedContext.HttpContext.Request.Body.CanSeek)
+                {
+                    executedContext.HttpContext.Request.Body.Position = 0;
+                    using StreamReader reader = new(executedContext.HttpContext.Request.Body);
+                    var body = await reader.ReadToEndAsync();
+                    Console.WriteLine($"Logging On ActionExecuted From Body: {body}");
+                    executedContext.HttpContext.Request.Body.Position = 0;
+                }
+            }
+        }
+        else
+        {
+            Console.WriteLine($"Logging On ActionExecuted");
+        }
+    }
+}

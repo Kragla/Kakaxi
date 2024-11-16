@@ -1,0 +1,50 @@
+string sourceConntionString = CONNECTION_STRING;
+string targetConntionString = TARGET_CONNECTION_STRING;
+string sql = SQL_STRING;
+using IDbConnection conn = new MySqlConnection(sourceConntionString);
+conn.Open();
+// 查询
+var records = await conn.QueryAsync(sql);
+// 转换为IDictionary<string,object>集合(DapperRow实现了IDictionary<string,object>)
+var sourceRecords = records.Cast<IDictionary<string, object>>();
+
+StringBuilder fieldsBuilder = new();
+StringBuilder valuesBuilder = new();
+foreach (var k in sourceRecords.First().Keys)
+{
+	fieldsBuilder.Append($"{k},");
+	valuesBuilder.Append($"@{k},");
+}
+string insertSql = $"insert into users2 ({fieldsBuilder.ToString().TrimEnd(',')}) values({valuesBuilder.ToString().TrimEnd(',')})";
+
+// 将数据分批, 多线程处理
+var sourceChunks = sourceRecords.Chunk(100);
+List<Task> tasks = new();
+foreach (var chunk in sourceChunks)
+{
+	tasks.Add(Task.Run(async () =>
+	{
+		using var connection = new MySqlConnection(targetConntionString);
+		
+		StringBuilder valueStatementBuilder = new();
+		Dictionary<string, object> parameters = new();
+		for (int i = 0; i < chunk.Length; i++)
+		{
+			var record = chunk[i];
+			valueStatementBuilder.Append("(");
+			foreach (var field in record)
+			{
+				var parameterName = $"{field.Key}{i}";
+				valueStatementBuilder.Append($"@{parameterName},");
+				parameters.Add(parameterName, field.Value);
+			}
+			valueStatementBuilder.Remove(valueStatementBuilder.Length - 1, 1);
+			valueStatementBuilder.Append($"),{Environment.NewLine}");
+		}
+		string sql = $"insert into users2 ({fieldsBuilder.ToString().TrimEnd(',')}) values{valueStatementBuilder.ToString().TrimEnd(',', '\r', '\n')}";
+		var res = await connection.ExecuteAsync(sql, parameters);
+		Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} 成功添加{res}条数据");
+	}));
+}
+Console.WriteLine($"一共添加了{tasks.Count}个数据库连接");
+await Task.WhenAll(tasks);

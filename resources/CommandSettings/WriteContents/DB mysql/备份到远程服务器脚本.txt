@@ -1,6 +1,6 @@
 #!/bin/bash
 # MySQL服务器地址
-source_host="192.168.1.230"
+source_host="192.168.1.100"
 # MySQL用户名
 source_user="root"
 # MySQL密码
@@ -9,7 +9,7 @@ source_password="changeme2022"
 backup_dir="/home/administrator/data/mysqldata"
 
 # 上传服务器地址
-target_host="192.168.1.230"
+target_host="192.168.1.100"
 # 上传服务器用户名(配置私钥免密登录)
 target_user="root"
 # 上传服务器目录

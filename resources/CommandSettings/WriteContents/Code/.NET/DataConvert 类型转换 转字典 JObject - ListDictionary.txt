@@ -1,0 +1,2 @@
+// 将Navicate导出的json转换为字典集合
+var records = JsonConvert.DeserializeObject<JObject>(dataSourceJson)?["RECORDS"].ToObject<List<Dictionary<string, object>>>();

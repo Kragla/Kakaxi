@@ -1,1 +1,1 @@
-D:\Users\Wu Qianlin\AppData\Local\Programs\Python\Python310\
+D:\Users\{USERNAME}\AppData\Local\Programs\Python\Python310\

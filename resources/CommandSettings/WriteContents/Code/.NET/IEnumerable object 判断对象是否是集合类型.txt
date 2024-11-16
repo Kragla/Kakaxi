@@ -1,0 +1,4 @@
+if (TARGET is IEnumerable objList)
+{
+    object[] objValues = objList.Cast<object>().ToArray();
+}

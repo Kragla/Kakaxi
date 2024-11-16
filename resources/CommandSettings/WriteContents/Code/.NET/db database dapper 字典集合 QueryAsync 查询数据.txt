@@ -1,0 +1,8 @@
+string conntionString = CONNECTION_STRING;
+string sql = SQL_STRING;
+using IDbConnection conn = new MySqlConnection(conntionString);
+conn.Open();
+// 查询
+var records = await conn.QueryAsync(sql);
+// 转换为IDictionary<string,object>集合(DapperRow实现了IDictionary<string,object>)
+var sourceRecords = records.Cast<IDictionary<string, object>>();

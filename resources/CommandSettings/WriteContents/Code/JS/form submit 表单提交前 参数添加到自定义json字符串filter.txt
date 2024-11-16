@@ -1,0 +1,31 @@
+// 提交表单前, 
+let filter = '';
+const xxFormItem = document.querySelect('input[name="UserName"]');
+const xxFormItemKey = xxFormItem.getAttribute("name");
+const xxFormItemValue = statusSelect.value;
+if (filterNameValue) {
+    filter += `,"${filterNameKey}":"${filterNameValue}"`;
+}
+// 其他表单项....
+if (filter) {
+    filter = "{" + filter.substring(1) + "}";
+
+    // form添加一个隐藏域, 传递过滤参数
+    const input = document.createElement("input");
+    input.setAttribute("type", "hidden");
+    input.setAttribute("name", "filter");
+    input.setAttribute("value", filter);
+    form.appendChild(input)
+}
+
+TARGET_FORM.submit();
+
+
+// 表单提交, MVC模式页面刷新, 前端重新显示参数
+let filterJson = '@Html.Raw(ViewBag.Filter)';
+if (filterJson) {
+    filterJson = JSON.parse(filterJson);
+    for (let key in filterJson) {
+        document.querySelector(`input[name='${key}']`).value = filterJson[key];
+    }
+}

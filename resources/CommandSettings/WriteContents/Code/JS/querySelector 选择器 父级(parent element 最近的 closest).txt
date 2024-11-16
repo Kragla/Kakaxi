@@ -1,0 +1,1 @@
+document.querySelector('.eleClass').closest('.parentClass')

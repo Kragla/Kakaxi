@@ -1,0 +1,220 @@
+public static void AddAuthenticationService(this IServiceCollection services, IConfiguration configuration)
+{
+    string identityServerBaseUrl = configuration["IdentityServerConfiguration:Authority"] ?? throw new Exception("Authority不能为空");
+    string clientId = configuration["IdentityServerConfiguration:ClientId"] ?? throw new Exception("client id不能为空");
+    string clientSecret = configuration["IdentityServerConfiguration:ClientSecret"] ?? throw new Exception("client secret不能为空");
+    string oidcResponseType = configuration["IdentityServerConfiguration:OidcResponseType"] ?? throw new Exception("oidc response type不能为空");
+    string apiName = configuration["IdentityServerConfiguration:ApiName"] ?? throw new Exception("api name不能为空");
+    string apiSecret = configuration["IdentityServerConfiguration:ApiSecret"] ?? throw new Exception("api secret不能为空");
+    bool requireHttpsMetadata = configuration.GetValue<bool>("IdentityServerConfiguration:RequireHttpsMetadata");
+    List<string> scopes = [];
+    configuration.GetSection("IdentityServerConfiguration:Scopes").Bind(scopes);
+
+    JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
+    // 1.添加cookie身份认证方案;
+    // 2.AddOpenIdConnect: oidc远程认证方案(基于cookie的对接IdentityServer4认证中心进行登录);
+    // 3.AddIdentityServerAuthentication: IdentityServer4认证中心的API认证方案(Bearer token身份认证)
+    // 4.控制器中使用[Authorize(AuthenticationSchemes = "Bearer,Cookies")]特性进行授权验证, 优先使用Bearer token进行验证, 如果没有Bearer token则使用Cookies进行验证
+    services.AddAuthentication(options =>
+    {
+        //默认验证方案
+        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        //默认token验证失败后的确认验证结果方案
+        options.DefaultChallengeScheme = "oidc";
+
+        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultForbidScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultSignOutScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    })
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme,
+        options =>
+        {
+            options.Cookie.Name = "RemoteTasksCookies";
+            options.Cookie.SameSite = (SameSiteMode)(-1);
+            options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+            //options.TicketDataFormat = new TicketDataFormat(new CookieTicketDataFormat());
+            //options.TicketDataFormat = new TicketDataFormat(new CustomCookieDataProtector());
+        })
+    .AddOpenIdConnect("oidc", options =>
+    {
+        //指定远程认证方案的本地登录处理方案
+        options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        //远程认证地址
+        options.Authority = identityServerBaseUrl;
+        //Https强制要求标识
+        options.RequireHttpsMetadata = requireHttpsMetadata;
+        //客户端ID（支持隐藏模式和授权码模式，密码模式和客户端模式不需要用户登录）
+        options.ClientId = clientId;
+        options.ClientSecret = clientSecret;
+        options.ResponseType = oidcResponseType;
+        options.MapInboundClaims = false;
+        options.Scope.Clear();
+        foreach (var scope in scopes)
+        {
+            options.Scope.Add(scope);
+        }
+        //options.ClaimActions.MapAll(); // 用户信息全部属性添加至Claims中
+
+        //令牌保存标识
+        options.SaveTokens = true;
+
+        options.GetClaimsFromUserInfoEndpoint = true;
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            NameClaimType = JwtClaimTypes.Name,
+            RoleClaimType = JwtClaimTypes.Role,
+        };
+
+        options.Events = new OpenIdConnectEvents
+        {
+            OnTokenResponseReceived = n => OnTokenResponseReceived(n),
+            OnUserInformationReceived = n => OnUserInformationReceived(n),
+            OnMessageReceived = OnMessageReceived,
+            OnRedirectToIdentityProvider = n => OnRedirectToIdentityProvider(n)
+        };
+        options.CallbackPath = "/signin-oidc";
+    })
+    .AddIdentityServerAuthentication(options =>
+    {
+        options.Authority = identityServerBaseUrl;
+        // 即api resource (获取token时参数scope关联的api resource)
+        options.ApiName = apiName;
+        // 即api resource secret
+        options.ApiSecret = apiSecret;
+        options.RequireHttpsMetadata = requireHttpsMetadata;
+        options.JwtBearerEvents.OnTokenValidated = async context =>
+        {
+            var claimsIdentity = context.Principal?.Identity as ClaimsIdentity; // 即控制器的属性User的属性Identity
+
+            if (claimsIdentity is not null)
+            {
+                // 将 nameidentifier 改为 sub
+                var nameIdentifierClaim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+                if (nameIdentifierClaim != null)
+                {
+                    claimsIdentity.RemoveClaim(nameIdentifierClaim);
+                    claimsIdentity.AddClaim(new Claim("sub", nameIdentifierClaim.Value));
+                }
+
+                // 添加 role 声明, 某些授权的Policy是根据role判断的
+                var roleClaims = claimsIdentity.FindAll(ClaimTypes.Role).ToList();
+                foreach (var roleClaim in roleClaims)
+                {
+                    claimsIdentity.AddClaim(new Claim(JwtClaimTypes.Role, roleClaim.Value));
+                }
+            }
+
+            await Task.CompletedTask;
+        };
+
+        //options.EnableCaching = true;
+        //options.CacheDuration = TimeSpan.FromMinutes(3);
+        //options.SupportedTokens = SupportedTokens.Both;
+    });
+}
+
+
+        private static Task OnRedirectToIdentityProvider(RedirectContext redirectContext)
+        {
+            if (redirectContext.Request.Headers.XRequestedWith == "XMLHttpRequest")
+            {
+                redirectContext.Response.StatusCode = 401;
+                redirectContext.HandleResponse();
+            }
+            else
+            {
+                // X-Scheme
+                string scheme = redirectContext.Request.Headers["X-Scheme"].ToString() ?? redirectContext.Request.Scheme;
+                if (string.IsNullOrEmpty(scheme))
+                {
+                    scheme = redirectContext.Request.Scheme;
+                }
+                var host = $"{scheme}://{redirectContext.Request.Host.Value}";
+                redirectContext.ProtocolMessage.RedirectUri = $"{host}/signin-oidc";
+                redirectContext.ProtocolMessage.PostLogoutRedirectUri = $"{host}/signout-callback-oidc";
+            }
+            return Task.CompletedTask;
+        }
+        private static Task OnMessageReceived(MessageReceivedContext context)
+        {
+            if (context.Properties is not null)
+            {
+                context.Properties.IsPersistent = false;
+            }
+            return Task.CompletedTask;
+        }
+        /// <summary>
+        /// 成功获取用户信息
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        private static Task OnUserInformationReceived(UserInformationReceivedContext context)
+        {
+            if (context.User != null)
+            {
+                context.Options.ClaimActions.Clear();
+                // 从user数据拿属性添加到Claims中, "要添加的Claim Type" => "Claim Value取用户信息中的xx属性"
+                context.Options.ClaimActions.MapJsonKey("name", "UserAccount");
+                context.Options.ClaimActions.MapJsonKey("scope", "scope");
+                context.Options.ClaimActions.MapJsonKey("role", "role");
+                context.Options.ClaimActions.MapCustomJson("userInfo", JsonClaimValueTypes.Json, user =>
+                {
+                    string userInfoJson = user.GetRawText();
+                    return userInfoJson;
+                });
+            }
+            return Task.CompletedTask;
+        }
+
+        private static Task OnTokenResponseReceived(TokenResponseReceivedContext context)
+        {
+            var accessToken = context.TokenEndpointResponse.AccessToken;
+            // 检查是否成功获取到访问令牌
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                context.HttpContext.Session.SetString("token", accessToken);
+
+                // 将scope声明添加到用户的Claims中
+                var scopes = context.TokenEndpointResponse.Scope.Split(' ');
+                var claims = scopes.Select(x => new Claim("scope", x)).ToList();
+                var identity = new ClaimsIdentity(claims, context.Principal?.Identity?.AuthenticationType);
+                context.Principal?.AddIdentity(identity);
+            }
+            return Task.CompletedTask;
+        }
+
+// 前端封装异步请求, 添加请求头"X-Requested-With XMLHttpRequest"标识当前请求为一部请求, 方便后端在身份认证失败并且是异步请求时, 返回401状态码, 让前端处理身份过期的逻辑
+async function httpRequestAsync(url, spinnerEle = null, method = 'POST', body = '', contentType = '') {
+    try {
+        showSpinner(spinnerEle);
+        if (!contentType && method.toUpperCase() === 'POST') {
+            contentType = 'application/json';
+        }
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': contentType,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: body
+        })
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                showWarningBox('身份已过期, 请点击确定刷新页面', () => location.reload());
+                return;
+            }
+        }
+
+        var rspJson = await response.json();
+
+        return rspJson;
+    } catch (e) {
+        showErrorBox(e.message);
+    } finally {
+        closeSpinner(spinnerEle);
+    };
+}

@@ -1,7 +1,7 @@
 cat << NGINX_TCP_FORWARD > $target
 upstream mysqllocal {
     hash $remote_addr consistent;
-    server 192.168.1.230:3306 weight=5 max_fails=3 fail_timeout=30s;
+    server 192.168.1.100:3306 weight=5 max_fails=3 fail_timeout=30s;
 }
 server {
     listen 5999;

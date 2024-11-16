@@ -1,0 +1,13 @@
+$.ajax({
+    url: window.location.origin + '/API/CONTROLLER/ACTION',
+    type: 'POST',
+    data: { 'id': 1 },
+    dataType: 'json',
+    success: function (response) {
+        const data = response.data;
+        // 处理返回的数据
+    },
+    error: function () {
+        layer.msg('操作失败');
+    }
+});

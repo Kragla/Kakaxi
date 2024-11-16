@@ -1,0 +1,10 @@
+using var client = new HttpClient();
+
+string mediaType = "application/json";
+string bodyContent = File.ReadAllText(@"json参数保存的文件");
+
+HttpContent parameters = new StringContent(bodyContent, Encoding.UTF8, mediaType);
+client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "ACCESS_TOKEN");
+var res = await client.PostAsync("https://YOUDOMAIN/api/Xxx", parameters);
+res.ReasonPhrase.Dump();
+(await res.Content.ReadAsStringAsync()).Dump();

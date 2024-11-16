@@ -1,3 +1,4 @@
+// 使用: 在Action上添加特性标签 [ServiceFilter(typeof(LogContentFilter))]
 public class LogContentFilter : IActionFilter
 {
     private readonly LogContentBuilder _logBuilder;
@@ -9,15 +10,10 @@ public class LogContentFilter : IActionFilter
 
     public void OnActionExecuting(ActionExecutingContext context)
     {
-        // 这里可以使用_myScopedService做一些操作
     }
 
     public void OnActionExecuted(ActionExecutedContext context)
     {
-        // 这里可以使用_myScopedService做一些操作
-        //var logger = LogManage.GetLogger<LogContentFilter>();
-        //logger.LogInformation(_logBuilder);
-
         Console.WriteLine("Logging On ActionExecuted:");
         Console.WriteLine(_logBuilder.Build());
     }
