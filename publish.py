@@ -126,7 +126,7 @@ def main():
 def fill_datacontext_by_user_input(variables, data_context, version_controller):
     for item in variables:
         current = input(f'请输入{item["name"]}:')
-        if not current and item["name"] == 'version name':
+        if version_controller and not current and item["name"] == 'version name':
             with open(version_controller, 'r', encoding=ENCODING) as file:
                 content = file.read()
                 matches = re.compile(r'dev\.v\d+\.\d+\.\d+').findall(content)
