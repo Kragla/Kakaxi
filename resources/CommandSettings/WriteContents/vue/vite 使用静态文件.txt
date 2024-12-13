@@ -1,0 +1,10 @@
+// 定义方法
+<script setup>
+    const getImgSrc = () => {
+        console.log(import.meta.url)
+        return new URL('@/assets/avatar.png', import.meta.url).href
+    }
+</script>
+
+<!-- 使用方法 -->
+<img class="user" :src="getImgSrc()" alt="">

@@ -1,0 +1,10 @@
+### 隐藏滚动条, 保留滚动效果
+/*隐藏滚动条并保留其滚功能 */
+.menu {
+    overflow: -moz-scrollbars-none; /* firefox */
+    -ms-overflow-style: none;  /* IE 10+ */
+    scrollbar-width: none; /* firefox  */
+}
+.menu::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera*/
+}

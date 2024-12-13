@@ -125,11 +125,30 @@ class Kakaxi(object):
                         directory_name = os.path.basename(os.path.dirname(file))
                         key = f"{directory_name} - {file_name}"
 
-                    # 复杂的GUI操作命令必须放到operatekeyboardandmouse目录下才会被识别
-                    if '/operatekeyboardandmouse/' in file.lower():
-                        self.scripts_dic[key] = ScriptInfo(file_content, 1, file)
+                    script_type = 0
+                    if file_content.startswith('###'):
+                        # ###开头的文件包含多个命令, ###作为分隔符
+                        for titleAndContent in file_content.split('###'):
+                            if titleAndContent:
+                                # 获取第一行作为标题的一部分
+                                first_newline_index = titleAndContent.index('\n')
+                                
+                                subTitle = titleAndContent[0:first_newline_index].strip()
+                                if subTitle.endswith('::'):
+                                    subTitle = subTitle[:-2].strip()
+                                    script_type = 1
+                                sub_key = f"{key} - {subTitle}"
+                                
+                                subContent = titleAndContent[first_newline_index + 1:].strip()
+                                
+                                if titleAndContent:
+                                    self.scripts_dic[sub_key] = ScriptInfo(subContent, script_type, file)
                     else:
-                        self.scripts_dic[key] = ScriptInfo(file_content, 0, file)
+                        # 复杂的GUI操作命令必须放到operatekeyboardandmouse目录下才会被识别
+                        if '/operatekeyboardandmouse/' in file.lower():
+                            script_type = 1
+                        
+                        self.scripts_dic[key] = ScriptInfo(file_content, script_type, file)
 
 
     def show(self):
@@ -201,6 +220,7 @@ class Kakaxi(object):
 
         # 获取当前输入框的值, 空则不处理
         input_val = event.widget.get()
+        self.realtime_input_val = input_val
 
         if key == "Return":
             # 中文输入法回车时其实还是输入, 不希望执行run方法
@@ -321,7 +341,7 @@ class Kakaxi(object):
 
         if not self.selected_key:
             return
-        if self.selected_key == 'reload':
+        if self.last_input_value == 'reload':
             self.load_scripts()
             messagebox.showinfo('提示', '已重新加载配置')
             return

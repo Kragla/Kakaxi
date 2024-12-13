@@ -1,0 +1,79 @@
+if (string.IsNullOrWhiteSpace(dto.Url))
+{
+    throw new Exception("接口地址不能为空");
+}
+
+var headsInfo = ResolveJsonParameters(dto.Headers);
+if (headsInfo is null)
+{
+    throw new Exception("自定义请求头必须是json字符串");
+}
+
+var bodyInfo = ResolveJsonParameters(dto.Body);
+if (bodyInfo is null)
+{
+    throw new Exception("请求体必须是json字符串");
+}
+
+var queryInfo = ResolveJsonParameters(dto.Query);
+if (queryInfo is null)
+{
+    throw new Exception("查询参数必须是json字符串");
+}
+
+using var client = httpClientFactory.CreateClient();
+
+var token = Request.Headers["Authorization"].FirstOrDefault()?.Replace("Bearer ", "");
+client.DefaultRequestHeaders.Authorization = new Sys.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token); 
+foreach (var head in headsInfo.Item2)
+{
+    client.DefaultRequestHeaders.Add(head.Key, head.Value.ToString());
+}
+
+HttpContent content;
+HttpResponseMessage response;
+if (dto.Method.Equals("post", StringComparison.OrdinalIgnoreCase))
+{
+    if (dto.ContentType.Contains("json"))
+    {
+        content = new StringContent(bodyInfo.Item1, Encoding.UTF8, dto.ContentType);
+    }
+    else
+    {
+        content = new FormUrlEncodedContent(bodyInfo.Item2.Select(x => new KeyValuePair<string, string>(x.Key, x.Value.ToString())));
+    }
+    response = await client.PostAsync(dto.Url, content);
+}
+else
+{
+    string queryString = string.Empty;
+    foreach (var item in queryInfo.Item2)
+    {
+        queryString += $"{item.Key}={item.Value}&";
+    }
+    if (!string.IsNullOrWhiteSpace(queryString))
+    {
+        queryString = queryString.TrimEnd('&');
+        dto.Url = dto.Url.Contains('?') ? $"{dto.Url}&{queryString}" : $"{dto.Url}?{queryString}";
+    }
+    response = await client.GetAsync(dto.Url);
+}
+
+string responseContent = await response.Content.ReadAsStringAsync();
+var responseObj = JsonConvert.DeserializeObject(responseContent);
+if (responseObj is null)
+{
+    throw new Exception($"请求错误: {response.StatusCode}");
+}
+
+object result;
+if (responseObj is JObject dataObj)
+{
+    var dataProp = dataObj.Properties().FirstOrDefault(x => x.Name.Equals("data", StringComparison.OrdinalIgnoreCase));
+    result = dataProp?.Value;
+}
+else
+{
+    result = responseObj;
+}
+return result;

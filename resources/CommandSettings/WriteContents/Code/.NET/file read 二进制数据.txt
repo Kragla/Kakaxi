@@ -1,0 +1,3 @@
+using FileStream fs = new(fullPath, FileMode.Open, FileAccess.Read);
+BinaryReader br = new(fs);
+byte[] fileBytes = br.ReadBytes((int)fs.Length);

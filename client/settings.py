@@ -36,7 +36,9 @@ PROJECTS = {
         # Only file paths containing 'my' and 'Dockerfile' will be uploaded
         'file_include_strs': 'my,Dockfile',
         # Files with paths containing 'appsettings.json' and 'wwwroot' will not be uploaded.
-        'file_exclude_strs': 'appsettings.json,wwwroot'
+        'file_exclude_strs': 'appsettings.json,wwwroot',
+        # Specify the name of the upload directory on the remote server
+        'remote_app_dir_name': 'my project'
     }
 }
 
@@ -60,10 +62,11 @@ UPLOAD = {
         # Parameter 1: Server IP;
         # Parameter 2: Port;
         # Parameter 3: Whether to upload a compressed package or a directory for the upload directory;
-        # Parameter 4: The location on the server where the file is being uploaded.
+        # Parameter 4: The location on the server where the 'directory' is being uploaded. The directory name defaults to the project name "my project," or you can explicitly specify it using the property "remote_app_dir_name".
         
-        # Parameter 5: This is a remote execution script that runs a program, and after selecting the 'my project' project from the console
+        # Parameter 5: remote cmds after upload
         #   {{app_name}} will be replaced with 'my project.zip', and {{appalias}} will be replaced with 'mpn'.
+        # Parameter 6: remote cmds before upload
         ("192.168.1.229", 9898, "zip", "/var/wwwroot", ["mv -f /var/wwwroot/{{app_name}} /var/packages/"]),
         ("192.168.1.229", 9898, "dir", "/var/wwwroot", ["publish_images {{appalias}}"]),
     ),
@@ -103,7 +106,7 @@ if os.path.exists(os.path.join(os.path.dirname(BASE_DIR), 'tools_settings.json')
             PROJECTS = data["projects"]
         if 'upload' in data:
             UPLOAD = data['upload']
-        if 'secret' in data:
+        if 'privatekey' in data:
             PRIVATEKEY = data['privatekey']
         if 'kakaxi' in data:
             KAKAXISETTINGS = data['kakaxi']

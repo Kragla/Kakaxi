@@ -1,0 +1,153 @@
+第一步. 定义处理url授权的中间件, 处理授权逻辑
+using IdentityModel.Client;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Security.Claims;
+using System.Threading.Tasks;
+
+namespace xxx.Middlewares
+{
+    internal class AuthorizeQueryStringTokenMiddleware
+    {
+        readonly RequestDelegate _next;
+        private readonly IHttpClientFactory _clientFactory;
+        private readonly IConfiguration _configuration;
+        private readonly IOptionsMonitor<AuthQueryStringOptions> _authQueryStringOptions;
+        private readonly ILogger<AuthorizeQueryStringTokenMiddleware> _logger;
+        private readonly IMemoryCache _memoryCache;
+
+        public AuthorizeQueryStringTokenMiddleware(RequestDelegate next,
+            IHttpClientFactory httpClientFactory,
+            IConfiguration configuration,
+            IOptionsMonitor<AuthQueryStringOptions> authQueryStringOptions,
+            ILogger<AuthorizeQueryStringTokenMiddleware> logger,
+            IMemoryCache memoryCache)
+        {
+            _next = next;
+            _clientFactory = httpClientFactory;
+            _configuration = configuration;
+            _authQueryStringOptions = authQueryStringOptions;
+            _logger = logger;
+            _memoryCache = memoryCache;
+        }
+        public async Task Invoke(HttpContext context)
+        {
+            _logger.LogInformation(_authQueryStringOptions.CurrentValue.ToJson());
+            if (_authQueryStringOptions.CurrentValue.Enabled
+                && _authQueryStringOptions.CurrentValue.PathKeywords is not null
+                && _authQueryStringOptions.CurrentValue.PathKeywords.Any(x => context.Request.Path.StartsWithSegments($"/{x.TrimStart('/')}", StringComparison.OrdinalIgnoreCase)))
+            {
+                if (context.User.Identity.IsAuthenticated)  //判断用户是否
+                {
+                    await _next(context);
+                }
+                else
+                {
+                    var accessToken = context.Request.Query["access_token"];
+                    if (string.IsNullOrWhiteSpace(accessToken))
+                    {
+                        await context.ForbidAsync();
+                        _logger.LogInformation($"token校验失败: QueryString Token校验失败");
+                        return;
+                    }
+                    context.Request.Headers.Add("Authorization", $"Bearer {accessToken}");
+                    using var client = _clientFactory.CreateClient();
+                    if (!_memoryCache.TryGetValue(accessToken, out TokenIntrospectionResponse result))
+                    {
+                        var start = DateTime.Now;
+                        result = await client.ValidateTokenAsync(_configuration, accessToken);
+                        _logger.LogInformation($"token校验耗时: {(DateTime.Now - start).TotalMilliseconds}/ms");
+
+                        if (result.IsError || !result.IsActive)
+                        {
+                            _logger.LogInformation($"token校验失败: IsActive:\"{result.IsActive}\"; Error:\"{result.Error}\"");
+
+                            await context.ForbidAsync();
+                            return;
+                        }
+
+                        var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(3));
+                        _memoryCache.Set(accessToken, result, cacheEntryOptions);
+                    }
+
+                    var claims = new List<Claim>();
+                    foreach (var claim in result.Claims)
+                    {
+                        claims.Add(new Claim(claim.Type, claim.Value));
+                    }
+                    var identity = new ClaimsIdentity(claims, "Bearer");
+
+                    context.User = new ClaimsPrincipal(identity);
+                    await _next(context);
+                }
+            }
+            else
+            {
+                await _next(context);
+            }
+        }
+    }
+}
+
+第二步. Startup中配置静态服务器
+// 1.Startup()中加载url授权配置
+services.Configure<AuthQueryStringOptions>(Configuration.GetSection("AuthQueryString"));
+// 2.Configure()中配置静态服务器
+// 2.1 FileExtensionContentTypeProvider：默认的文件扩展名和MIME类型映射(如: .image:image/png)
+var provider = new FileExtensionContentTypeProvider();
+// Add new mappings
+var mappings = new List<string>();
+Configuration.GetSection("StaticFileMappings").Bind(mappings);
+foreach (var mapping in mappings)
+{
+    if (mapping.Contains(':'))
+    {
+        var mappingArr = mapping.Split(':');
+        provider.Mappings[mappingArr[0]] = mappingArr[1];
+    }
+}
+// 2.2 应用处理url授权的中间件
+app.UseMiddleware<AuthorizeQueryStringTokenMiddleware>();
+app.Use...
+    .UseFileServer(new FileServerOptions
+    {
+        FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")),
+        StaticFileOptions = {
+            ContentTypeProvider = provider,
+            OnPrepareResponse = ctx =>
+            {
+                // 如果参数包含download=1, 则设置文件下载(Content-Disposition: attachment); (针对浏览器直接打开文件而不下载时让用户下载文件)
+                // download=1时, 如果参数包含rename=xx, 那么下载时重命名文件名
+                if (ctx.Context.Request.QueryString.HasValue && ctx.Context.Request.QueryString.Value.Contains("download=1", StringComparison.OrdinalIgnoreCase))
+                {
+                    string filename = ctx.Context.Request.Path.Value[(ctx.Context.Request.Path.Value.LastIndexOf('/') + 1)..];
+                    if (ctx.Context.Request.Query.ContainsKey("rename"))
+                    {
+                        var rename = ctx.Context.Request.Query["rename"].ToString();
+                        if (!string.IsNullOrWhiteSpace(rename))
+                        {
+                            filename = rename;
+                        }
+                    }
+                    // filename有可能是中文, 需要编码
+                    ctx.Context.Response.Headers.Add("Content-Disposition", $"attachment; filename*=UTF-8''{Uri.EscapeDataString(filename)}");
+                }
+            }
+        },
+    });
+
+第三步. 配置需要检查权限的请求路径规则
+"AuthQueryString": {
+  // 是否启用
+  "Enabled": true,
+  // 启用时, 路径包含关键字则通过url中的token检查权限
+  "PathKeywords": [ "attachments", "publishlogs" ]
+}

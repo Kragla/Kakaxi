@@ -1,1 +1,1 @@
-Server=127.0.0.1;Port=3306;Stmt=;Database=business;Uid=root;Pwd=123456;Allow User Variables=true;sslMode=None;pooling=true;min pool size=5;max pool size=5120;connect timeout = 20;
+Server=127.0.0.1;Port=3306;Stmt=;Database=business;Uid=root;Pwd=123456;AllowLoadLocalInfile=true;Allow User Variables=true;sslMode=None;pooling=true;min pool size=5;max pool size=5120;connect timeout = 20;

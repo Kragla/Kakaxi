@@ -1,0 +1,2 @@
+### 复制文件覆盖;/F表示SOURCE和DESTINATION都是文件(/D表示目录)，/Y表示覆盖
+xcopy /F /Y "SOURCE" "DESTINATION"

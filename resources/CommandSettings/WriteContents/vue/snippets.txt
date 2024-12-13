@@ -1,0 +1,83 @@
+### .vue文件中使用router
+import { useRouter } from 'vue-router'
+const router = new useRouter()
+// 使用router切换组件(跳转页面): router.push('/path')
+
+
+### router 路由变化事件 路由钩子
+import { useRouter, useRoute, onBeforeRouteUpdate } from 'vue-router'
+const router = new useRouter()
+
+const route = useRoute()
+const defaultActivePath = ref(route.path)
+
+// 监听路由变化, 路由发生变化时触发(这里是设置当前应该选中的菜单)
+onBeforeRouteUpdate((to, from) => {
+  defaultActivePath.value = to.path
+})
+
+
+### 1. pinia - main.ts中初始化
+// 1. 引入
+import { createPinia } from 'pinia'
+// 2. 创建pinia实例
+const pinia = createPinia()
+// 3. 安装pinia
+app.use(pinia)
+
+// app.mount('#app')
+
+
+### 2. pinia - 定义存储Xxx的存储文件Xxx.ts
+// 创建 src/store/Xxx.ts
+import { defineStore } from 'pinia'
+export const useXxxStore = defineStore('Xxx', {
+    actions: {
+        方法名() {
+            方法体
+        }
+    },
+    // 真正存储数据的地方
+    state: () => {
+        return {
+            属性名: 属性值
+        }
+    },
+    // 类似于计算属性, 对存储的数据进行加工, 只读
+    getters: {
+        //属性名: state => 函数体(使用state.属性名获取属性值)
+    }
+})
+
+### 3. pinia - 在组件中使用
+// 导入store函数
+import { useXxxStore } from "@/store/Xxx.ts"
+import { storeToRefs } from 'pinia'
+// 安装数据(获取数据)
+const xxxStore = useXxxStore()
+// 获取使用数据, 传递的对象数据结构出来的属性失去了响应式, 此时使用toRefs包装可以让这些属性具有响应式效果(转为Ref对象), 但是toRefs太大, 应该使用pinia为我们准备的storeToRefs, 它只会让store中存储的数据具有响应式
+let { 属性1, 属性2 } = storeToRefs(xxxStore)
+
+// 当xxxStore中有数据变化时被调用
+xxxStore.$subscribe((mutate, state) => {
+    // mutate 本次修改的信息
+    // state 当前最新的store数据
+    console.log("xxxStore changed")
+    // 数据更新时, 本地缓存数据
+    localStorage.setItem("xxxStore.list", JSON.stringify(state.list))
+})
+
+
+### 钩子函数 Hooks 挂载完毕注册事件,卸载组件前注销事件
+onMounted(() => {
+    document.addEventListener('keyup', onKeyup)
+})
+onBeforeUnmount(() => {
+    document.removeEventListener('keyup', onKeyup)
+})
+const onKeyup = (e) => {
+    if (e.key === 'Enter') {
+        ...
+    }
+}
+

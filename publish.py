@@ -31,6 +31,7 @@ def main():
     project_file = PROJECTS[app_name]['project_file']
     version_controller = PROJECTS[app_name]['version_controller']
     remote_app_dir_name = PROJECTS[app_name].get('remote_app_dir_name')
+    uploading_hosts = PROJECTS[app_name].get('uploading_hosts')
 
     # 文件需要包含的字符串
     file_include_strs = PROJECTS[app_name]['file_include_strs']
@@ -58,7 +59,7 @@ def main():
         "before_cmds": UPLOAD["before_cmds"],
         "after_cmds": UPLOAD["after_cmds"]
     }
-    resultListFlowCmdTxtGroups = resolve_cmd_groups(executingListFlowGroups, data_context)
+    resultListFlowCmdTxtGroups = resolve_cmd_groups(executingListFlowGroups, data_context, app_name)
     before_cmds = resultListFlowCmdTxtGroups.get('before_cmds')
     if before_cmds:
         execute_local_cmd_txts(before_cmds)
@@ -66,15 +67,21 @@ def main():
     # 上传至多个服务器
     for h in UPLOAD['hosts']:
         host = h[0]
+        if uploading_hosts and host not in uploading_hosts:
+            continue
         port = h[1]
         transfer_type = h[2]
         host_save_dir = h[3].replace('\\', '/')
         remote_cmds = None
-        if len(h) == 5:
+        if len(h) >= 5:
             remote_cmds = h[4]
+
+        if len(h) >= 6:
+            remote_cmds_before_upload = h[5]
+            execute_remote_cmds(remote_cmds_before_upload, data_context, host)
         
         # 1. 上传文或者目录
-        if transfer_type == 'dir':
+        if host_save_dir and transfer_type and transfer_type == 'dir':
             host_app_dir = app_name if remote_app_dir_name is None else remote_app_dir_name
             host_app_dir = host_app_dir if host_save_dir.endswith('/') else f'/{host_app_dir}'
             app_dir_abspath = f'{host_save_dir}{host_app_dir}' # /home/administrator/web/pro_dir
@@ -112,7 +119,7 @@ def main():
             #     print(zip_log_content)
             Uploader(host, port, ENCODING, host_save_dir).upload(ziped_file)
         else:
-            print(f'{host}:{port} 未指定zip或者dir的方式上传')
+            print(f'{host}:{port} 未指定zip或者dir的方式上传, 无需连接上传服务器上传目录')
         
         execute_remote_cmds(remote_cmds, data_context, host)
 
@@ -148,7 +155,19 @@ def execute_remote_cmds(cmds, data_context, host):
         for cmd_tmpl in cmds:
             cmd = resolve_tmpl(cmd_tmpl, data_context)
             if cmd:
-                remote_cmd_executing += f'{cmd};'
+                if cmd.startswith('upload '):
+                    print(f'execute: {cmd}')
+                    ssh = SSHConnection(host, 22, 'root', PRIVATEKEY)
+                    # upload local file to remote server
+                    pattern = r'^upload\s+"{0,1}([^"]+)"{0,1}\s+"{0,1}([^"]+)"{0,1}$'
+                    match = re.match(pattern, cmd)
+                    if match:
+                        local_path = match.group(1)
+                        remote_path = match.group(2)
+                        print(f'upload: {local_path} -> {remote_path}')
+                        ssh.upload(local_path, remote_path)
+                else:
+                    remote_cmd_executing += f'{cmd};'
 
     if remote_cmd_executing:
         ssh = SSHConnection(host, 22, 'root', PRIVATEKEY)
@@ -165,7 +184,7 @@ def execute_local_cmd_txts(cmd_txts):
             raise Exception(f'命令执行失败: {cmd_txt}')
 
 
-def resolve_cmd_groups(list_flow_groups, data_context):
+def resolve_cmd_groups(list_flow_groups, data_context, app_name):
     # 执行本地命令
     not_need_execute_group = []
     executing_list_flow_groups = {}
@@ -182,6 +201,10 @@ def resolve_cmd_groups(list_flow_groups, data_context):
                     executing_list_flow_groups[key].append({'cmdTxt': cmd})
                 else:
                     cmdTxt = cmd.get("cmdTxt")
+                    cmdProject = cmd.get("project")
+                    if cmdProject and app_name not in cmdProject:
+                        print(f'项目{app_name}不在{cmdProject}中, 不执行')
+                        continue
                     completeFlowGroup = cmd.get("completeFlowGroup")
                     
                     if completeFlowGroup and completeFlowGroup in not_need_execute_group:

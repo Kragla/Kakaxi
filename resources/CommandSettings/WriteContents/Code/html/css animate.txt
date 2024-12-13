@@ -1,0 +1,17 @@
+### scale  缩放
+/*uni-app文字大小最小只能设置为22rpx, 22/2=11, 实际显示的是12px; 要想文字更小, 可使用transfer缩放功能*/
+transform: scale(0.8);
+/*设置缩放的轴心点为左上角(默认缩放是以中心点缩放的, 那么就会导致左边和上面不会靠边了)*/
+transform-origin: left top;
+
+### transition 过度动画
+transition: all 0.2s;
+
+### translate  平移
+transform: translate(10px, 10px); /*水平向右移动10px, 垂直向下移动10px*/
+
+### rotate  旋转
+transform: rotate(45deg); /*顺时针旋转45度*/
+
+### skew  倾斜
+transform: skew(45deg, 45deg); /*水平倾斜45度, 垂直倾斜45度*/

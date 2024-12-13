@@ -1,0 +1,11 @@
+# 发送文本数据
+await socketForClient.SendAsync(Encoding.UTF8.GetBytes("ANYTHING YOU WANT TO SEND").AsMemory(), SocketFlags.None);
+
+# 接收文本: 字节数组 -> 文本
+var buffer = new byte[1024];
+var readedLength = await socketForClient.ReceiveAsync(buffer, SocketFlags.None);
+var receivedText = Encoding.UTF8.GetString(buffer, 0, readedLength).Replace("\0", string.Empty);
+
+# 接收文件: 字节数组 -> 写入文件
+using var fileStream = new FileStream(file, FileMode.Create);
+await fileStream.WriteAsync(buffer.AsMemory(0, realLength));

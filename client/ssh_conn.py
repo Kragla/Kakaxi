@@ -1,7 +1,6 @@
 # pip install paramiko报错: C:\Program Files (x86)\Windows Kits\10\include\10.0.22000.0\ucrt\inttypes.h(61): error C2143: 语法错误: 缺少“{”, 原因是该文件14行代码"#include <stdint.h>"找不到stdint.h
 # 解决办法: 将"D:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.34.31933\include\stdint.h"复制到"C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\ucrt"目录下; inttypes.h的第14行代码可以将尖括号改为双引号
 import paramiko
-import getpass
 from os import path
 
 class SSHConnection(object):
@@ -27,8 +26,10 @@ class SSHConnection(object):
         if self.__client is None:
             if path.isfile(self.pwd_or_pkey):
                 # 配置私钥文件位置
-                uname = getpass.getuser()
-                private = paramiko.RSAKey.from_private_key_file(f"C:/Users/{uname}/.ssh/id_rsa")
+                if 'rsa' in self.pwd_or_pkey:
+                    private = paramiko.RSAKey.from_private_key_file(self.pwd_or_pkey)
+                else:
+                    private = paramiko.Ed25519Key.from_private_key_file(self.pwd_or_pkey)
                 self.__client = paramiko.SSHClient()
                 self.__client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
                 self.__client.connect(hostname=self.host, port=self.port, username=self.user, pkey=private)
@@ -42,9 +43,18 @@ class SSHConnection(object):
 
     def create_sftp(self):
         if self.__sftp is None:
-            # 创建一个通道, sftp会使用它
-            self.__tran = paramiko.Transport((self.host, self.port))
-            self.__tran.connect(username=self.user, password=self.pwd_or_pkey)
+            if path.isfile(self.pwd_or_pkey):
+                # 创建一个通道, sftp会使用它
+                self.__tran = paramiko.Transport((self.host, self.port))
+                if 'rsa' in self.pwd_or_pkey:
+                    private = paramiko.RSAKey.from_private_key_file(self.pwd_or_pkey)
+                else:
+                    private = paramiko.Ed25519Key.from_private_key_file(self.pwd_or_pkey)
+                self.__tran.connect(username=self.user, pkey=private)
+            else:
+                # 创建一个通道, sftp会使用它
+                self.__tran = paramiko.Transport((self.host, self.port))
+                self.__tran.connect(username=self.user, password=self.pwd_or_pkey)
 
             # 创建sftp对象
             self.__sftp = paramiko.SFTPClient.from_transport(self.__tran)

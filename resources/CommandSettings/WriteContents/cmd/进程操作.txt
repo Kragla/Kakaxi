@@ -1,0 +1,8 @@
+### 根据进程名结束进程
+taskkill /IM Xxx.exe /F
+
+### task port 1.根据端口查看应用pid
+netstat -ano | findstr "18990"
+
+### task port 2.根据pid查看应用
+tasklist | findstr "43344"
