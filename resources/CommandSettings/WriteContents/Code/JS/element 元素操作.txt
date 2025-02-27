@@ -1,0 +1,10 @@
+### 滚动条滚动到底部
+{TARGET_ELEMENT}.scrollTop = {TARGET_ELEMENT}.scrollHeight;
+
+
+### animation slideUp 向上滑动收起(隐藏)元素p
+$("p").slideUp();
+
+
+### animation slideDown 向下滑动展开(显示)元素p
+$("p").slideDown();

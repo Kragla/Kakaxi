@@ -1,0 +1,11 @@
+### column 修改字段名
+alter table {YOUR_TABLE} RENAME COLUMN {DEST_COL} TO {DEST_COL_NEW_NAME};
+
+### user 用户 解锁启用用户 修改用户密码
+ALTER USER XXXUSER ACCOUNT UNLOCK; -- ALTER USER DIP identified by XXXPWD;
+
+### 密码过期 设置密码永不过期
+# 先设置密码永不过期
+alter profile default limit PASSWORD_LIFE_TIME UNLIMITED;
+# 再设置一下密码
+ALTER user YOUR_USERNAME identified by YOUR_PASSWORD;

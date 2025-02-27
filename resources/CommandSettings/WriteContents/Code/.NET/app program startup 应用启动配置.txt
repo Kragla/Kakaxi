@@ -1,0 +1,16 @@
+### 查看应用监听的地址
+var features = app.Properties["server.Features"] as FeatureCollection;
+var listenerFeature = features.Get<IServerAddressesFeature>();
+var addresses = listenerFeature.Addresses;
+foreach (var address in addresses)
+{
+    // Listening on http://+:80
+    Console.WriteLine($"Listening on {address}");
+}
+
+
+### ApiController 配置 ModelBinding  允许 参数 绑定 null
+services.AddControllersWithViews(options =>
+  {
+       options.AllowEmptyInputInBodyModelBinding = true;
+  });

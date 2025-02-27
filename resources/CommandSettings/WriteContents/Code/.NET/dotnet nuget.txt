@@ -1,0 +1,6 @@
+### add package xxx
+dotnet add package xxx
+
+
+### add source
+dotnet nuget add source https://younugetserver

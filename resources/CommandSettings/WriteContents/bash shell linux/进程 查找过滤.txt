@@ -1,0 +1,2 @@
+### 通过应用名精确查找应用的pid
+ps -aux | grep "AppName" | awk '{if ($0 !~ /grep/) print $2}'

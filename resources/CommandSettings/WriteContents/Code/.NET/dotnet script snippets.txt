@@ -1,0 +1,52 @@
+### DI 依赖注入
+#r "sdk:Microsoft.NET.Sdk.Web"
+
+using System.Net.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http;
+
+
+var serviceProvider = new ServiceCollection()
+	   .AddHttpClient()
+	   .BuildServiceProvider();
+IHttpClientFactory clientFactory = serviceProvider.GetService<IHttpClientFactory>();
+
+
+### 连接db dapper mysql
+#r "nuget: Dapper, 2.1.24"
+#r "nuget: MySql.Data, 8.0.31"
+
+using MySql.Data.MySqlClient;
+using Dapper;
+
+var conn = new MySqlConnection("Server=localhost;Database=xxx;Uid=root;Pwd=123456;");
+var user = conn.QueryFirstOrDefault<User>("SELECT * FROM user WHERE id = @id", new { id = 1 });
+
+
+### 构建mini api项目
+#r "sdk:Microsoft.NET.Sdk.Web"
+#r "nuget: MySql.Data, 8.0.31"
+#r "nuget: Dapper, 2.1.24"
+
+using Microsoft.AspNetCore.Builder;
+using MySql.Data.MySqlClient;
+using Dapper;
+
+var a = WebApplication.Create();
+a.MapGet("/", () => "Hello World!");
+a.MapGet("/user/{id}", async (int id) => {
+    using var connection = new MySqlConnection("server=localhost;user=root2;password=123456;database=chat");
+    var user = connection.QuerySingle<User>("SELECT * FROM user WHERE id = @id", new { id });
+    await Task.Delay(500);
+    return user;
+});
+a.Run();
+
+class User
+{
+    public int Id { get; set; }
+    public string UserName { get; set; }
+    public string Avatar { get; set; }
+    public string SocketId { get; set; }
+    public bool IsOnline { get; set; }
+}

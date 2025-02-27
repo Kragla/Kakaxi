@@ -1,0 +1,23 @@
+### checkbox 指定class且已选中的
+document.querySelectorAll('.my-checkbox:checked')
+
+
+### 元素是否可见
+$('ul').is(':visible')
+
+
+### 根据子元素特征
+li:has(> a[href="#"]) // 选择li元素, 要求子元素具有href属性为"#"的a标签
+
+
+### 父级(parent element 最近的 closest)
+document.querySelector('.eleClass').closest('.parentClass')
+
+
+### 选择多个元素
+querySelectorAll('input,select')
+
+
+### 前一个元素/相邻的前一个元素
+targetEle.previousElementSibling
+

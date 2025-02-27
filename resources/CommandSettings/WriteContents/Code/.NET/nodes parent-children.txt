@@ -1,0 +1,50 @@
+### 上下级数据集 分层获取数据 - 从level0
+private static IEnumerable<List<Dictionary<string, object>>> GetChildren(List<Dictionary<string, object>> records, string idField, string parentIdField)
+{
+    List<string> parentIds = new() { null, "" };
+    while (true)
+    {
+        var children = records.Where(x => parentIds.Contains(x[parentIdField]?.ToString())).ToList();
+        if (!children.Any())
+        {
+            yield break;
+        }
+        yield return children;
+        parentIds = children.Select(x => x[idField]?.ToString()).ToList();
+    }
+}
+
+### tree data 扁平数据列表data重新组织排版为树形结构
+var data = ...;
+
+if (data.Count == 0)
+{
+    return [];
+}
+
+var treeData = GetTreeData();
+return new ReturnResult<IEnumerable<TREE_DATA_CLASS>>(ReturnResultCode.Success, treeData);
+
+List<TREE_DATA_CLASS> GetTreeData(List<InstitutionalCompilationType> leveledList = null)
+{
+    List<TREE_DATA_CLASS> treeList = new();
+    leveledList ??= data.Where(x => string.IsNullOrWhiteSpace(x.ParentId)).ToList();
+    foreach (var item in leveledList)
+    {
+        var treeRecord = new TREE_DATA_CLASS
+        {
+            Id = item.Id,
+            Name = item.Name,
+            Children = []
+        };
+
+        var children = data.Where(x => x.ParentId == type.Id).ToList();
+        if (children.Count > 0)
+        {
+            treeRecord.Children = GetTreeData(children);
+        }
+
+        treeList.Add(treeRecord);
+    }
+    return treeList;
+}

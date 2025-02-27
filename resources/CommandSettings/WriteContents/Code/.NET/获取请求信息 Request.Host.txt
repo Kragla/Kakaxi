@@ -1,0 +1,10 @@
+### 获取请求地址
+string host = Request.Host.Value;
+string scheme = Request.Scheme;
+string ossUrl = $"{scheme}://{host}/api/xxx
+
+### 获取客户端IP地址
+string ip = Request.HttpContext.Connection.RemoteIpAddress.ToString();
+
+### 获取客户端浏览器信息
+Request.Headers["User-Agent"]

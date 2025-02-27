@@ -1,0 +1,10 @@
+### 遍历对象属性
+const keys = [];
+for (var key in obj) {
+    if (obj.hasOwnProperty(key)) {
+        keys.push(key);
+    }
+}
+
+### 对象数组arr根据属性orderNo升序排序
+arr.sort((item1, item2) => item1['orderNo'] > item2['orderNo'] ? 1 : -1);

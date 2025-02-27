@@ -1,1 +1,0 @@
-JsonConvert.SerializeObject(jsonString, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });

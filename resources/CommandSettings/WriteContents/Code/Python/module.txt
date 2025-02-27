@@ -1,0 +1,5 @@
+### 启动一个http web服务(web server) python2
+python -m SimpleHTTPServer 56666
+
+### 启动一个http web服务(web server) python3
+python -m http.server 56666

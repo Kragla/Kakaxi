@@ -1,0 +1,18 @@
+### 接口支持SSE协议
+var response = HttpContext.Response;
+response.Headers.Append("Content-Type", "text/event-stream");
+response.Headers.Append("Cache-Control", "no-cache");
+response.Headers.Append("Connection", "keep-alive");
+var cancellationToken = HttpContext.RequestAborted;
+await response.WriteAsync("data: Starting SSE...\n\n");
+string text = "Your text goes here";
+foreach (char c in text)
+{
+    await response.WriteAsync($"data: {c}\n\n");
+    await response.Body.FlushAsync();
+    await Task.Delay(1000, cancellationToken);
+    if (cancellationToken.IsCancellationRequested)
+    {
+        break;
+    }
+}

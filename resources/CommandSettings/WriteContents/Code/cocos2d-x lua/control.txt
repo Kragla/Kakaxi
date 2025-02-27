@@ -1,0 +1,5 @@
+### label 添加一个水平居中的label
+-- 字体: Arial/Chiller
+cc.Label.createWithSystemFont("Hello World", "Arial", 40)
+    .moveTo(display.cx, 100)
+    .addTo(self)

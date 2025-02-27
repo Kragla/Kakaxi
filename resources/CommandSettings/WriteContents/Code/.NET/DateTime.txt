@@ -1,0 +1,5 @@
+### format 格式化 精确到千万分之一秒
+$"{DateTime.Now:yyyyMMddHHmmssFFFFFFF}"
+
+### 时间戳 timestamp ISO8601
+$"{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}"

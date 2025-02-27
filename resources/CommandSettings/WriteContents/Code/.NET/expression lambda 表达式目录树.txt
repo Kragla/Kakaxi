@@ -1,0 +1,117 @@
+### 1.声明X类型的变量并实例化
+var XInstance = Expression.Variable(XType, "result");
+var init = Expression.Assign(XInstance, Expression.New(XType));
+
+### 2.调用变量的某个方法
+var XMethod = type.GetMethod("XMethodName", new Type[] { typeof(string), typeof(object), typeof(DbType?), typeof(ParameterDirection?), typeof(int?) }) ?? throw new Exception($"{Xtype.Name}没有找到{XMethodName}方法");
+var callXMethod = Expression.Call(XInstance, XMethod, Expression.Constant("1"), Expression.Constant("1111"), Expression.Default(typeof(DbType?)), Expression.Default(typeof(ParameterDirection?)), Expression.Default(typeof(int?)));
+
+
+### 3.调用变量的某个属性
+var returnLabel = Expression.Label(XType);
+var returnExpression = Expression.Return(returnLabel, XInstance, XType);
+var returnLableTarget = Expression.Label(returnLabel, XInstance);
+
+
+### 4.组装代码块 编译成lambda
+var block = Expression.Block(new[] { result }, init, addCall, returnExpression, returnLableTarget);
+var lambda = Expression.Lambda<Func<DynamicParameters>>(block).Compile();
+
+
+### A 实例化-调用方法-返回对象 - 无参数
+var XType = typeof(DynamicParameters);
+
+var result = Expression.Variable(XType, "result");
+var init = Expression.Assign(result, Expression.New(XType));
+
+var XMethod = XType.GetMethod("XMethodName", new Type[] { typeof(string), typeof(object), typeof(DbType?), typeof(ParameterDirection?), typeof(int?) }) ?? throw new Exception($"{type.Name}没有找到Add方法");
+var call = Expression.Call(result, XMethod, Expression.Constant("1"), Expression.Constant("1111"), Expression.Default(typeof(DbType?)), Expression.Default(typeof(ParameterDirection?)), Expression.Default(typeof(int?)));
+
+var returnLabel = Expression.Label(XType);
+
+var returnExpression = Expression.Return(returnLabel, result, XType);
+
+var returnLableTarget = Expression.Label(returnLabel, result);
+
+var block = Expression.Block(new[] { result }, init, call, returnExpression, returnLableTarget);
+var lambda = Expression.Lambda<Func<DynamicParameters>>(block).Compile();
+
+
+### A 实例化-调用方法-返回对象 - 有参数
+var XType = typeof(DynamicParameters);
+
+var snippet = Expression.Parameter(typeof(Snippet), "snippet");
+
+var result = Expression.Variable(XType, "result");
+var init = Expression.Assign(result, Expression.New(XType));
+
+var XMethod = XType.GetMethod("XMethodName", new Type[] { typeof(string), typeof(object), typeof(DbType?), typeof(ParameterDirection?), typeof(int?) }) ?? throw new Exception($"{type.Name}没有找到Add方法");
+var methodCall = Expression.Call(result, XMethod, Expression.Constant("1"), Expression.Property(snippet, nameof(Snippet.Title)), Expression.Default(typeof(DbType?)), Expression.Default(typeof(ParameterDirection?)), Expression.Default(typeof(int?)));
+
+var returnLabel = Expression.Label(XType);
+
+var returnExpression = Expression.Return(returnLabel, result, XType);
+
+var returnLableTarget = Expression.Label(returnLabel, result);
+
+var block = Expression.Block(new[] { result }, init, methodCall, returnExpression, returnLableTarget);
+var lambda = Expression.Lambda<Func<Snippet, DynamicParameters>>(block, snippet).Compile();
+
+
+### B 多次调用字符串Contains方法组装多个Or
+var roles = search.Roles.Split(',');
+
+// 定义参数表达式
+var parameterExp = Expression.Parameter(typeof(ProcessInfo), "x");
+
+// 定义属性表达式
+var propertyExp = Expression.Property(parameterExp, "Roles");
+
+// 定义常量表达式
+var constantExps = search.Roles.Split(',')
+    .Select(r => Expression.Constant(r));
+
+// 使用 OrElse 方法将多个表达式组合为一个 "或" 表达式
+Expression orExp = null;
+foreach (var constantExp in constantExps)
+{
+    var containsMethodExp = Expression.Call(propertyExp, "Contains", null, constantExp);
+    orExp = orExp == null ? containsMethodExp : Expression.OrElse(orExp, containsMethodExp);
+}
+// 创建 Lambda 表达式
+var lambdaExp = Expression.Lambda<Func<ProcessInfo, bool>>(orExp, parameterExp);
+// 应用查询表达式
+entities = entities.Where(lambdaExp);
+
+
+### x => ids.Contains(x.Id) && x.CreateTime >= startTime && x.EndTime <= endTime
+ParameterExpression entity = Expression.Parameter(typeof(XxxEntityClass), "entity");	// 创建形参 entity
+
+Expression exp = null;
+if (!string.IsNullOrWhiteSpace(ids))
+{
+    MemberExpression id = Expression.Property(entity, "Id");	// 获取 entity 的属性 Id
+    var idsConst = Expression.Constant(ids);
+    exp = Expression.Call(idsConst, "Contains", null, id); // 调用字符串的Contains方法
+}
+if (startTime.HasValue)
+{
+    MemberExpression createTime = Expression.Property(entity, "CreateTime");
+    ConstantExpression startTimeVal = Expression.Constant(startTime.Value);
+    var startTimeCondition =  Expression.GreaterThanOrEqual(createTime, startTimeVal);
+    exp = exp is null ? startTimeCondition : Expression.AndAlso(exp, startTimeCondition);
+}
+if (endTime.HasValue)
+{
+    MemberExpression createTime = Expression.Property(entity, "CreateTime");
+    ConstantExpression startTimeVal = Expression.Constant(endTime.Value);
+    var endTimeCondition = Expression.LessThanOrEqual(createTime, startTimeVal);
+    exp = exp is null ? endTimeCondition : Expression.AndAlso(exp, endTimeCondition);
+}
+
+Expression<Func<XxxEntityClass, bool>> filterExpression =
+    Expression.Lambda<Func<XxxEntityClass, bool>>(resultCondition, pe);	// 创建最终 lambda 表达式
+List<XxxEntityClass> list = context.XxxEntityClass.Where(filterExpression).ToList();	// 执行查询
+
+
+### #IF:\!{0,1}\w+\.Contains\(\w+\).+?#IFEND

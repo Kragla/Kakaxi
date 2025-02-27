@@ -1,4 +1,4 @@
-### 根据进程名结束进程
+### windows根据进程名结束/关闭进程
 taskkill /IM Xxx.exe /F
 
 ### task port 1.根据端口查看应用pid

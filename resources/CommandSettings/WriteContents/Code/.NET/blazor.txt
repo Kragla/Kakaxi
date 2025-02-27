@@ -1,0 +1,87 @@
+### razor文件 请求接口数据
+@page "/products"
+@inject HttpClient httpClient
+
+@code {
+    // 已经全局引用了Product所在命名空间
+    private List<Product> products = new();
+    protected override async Task OnInitializedAsync() {
+        var ps = await httpClient.GetFromJsonAsync<List<Product>>("/api/Product/List");
+        if (ps is not null) {
+            products = ps;
+        }
+    }
+}
+
+### MudBlazor MainLayout.razor 布局
+@inherits LayoutComponentBase
+
+<MudThemeProvider Theme="MyCustomTheme" />
+
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar>
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        My Application
+    </MudAppBar>
+    <MudDrawer @bind-Open="@_drawerOpen">
+        <NavMenu/>
+    </MudDrawer>
+    <MudMainContent>
+        <div style="margin:20px;padding:20px;background-color:#212121;border-radius:5px;">
+            @Body
+        </div>
+    </MudMainContent>
+</MudLayout>
+
+@code{
+    bool _drawerOpen = true;
+
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+    MudTheme MyCustomTheme = new MudTheme()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = Colors.Blue.Default,
+            Secondary = Colors.Green.Accent4,
+            AppbarBackground = Colors.Gray.Darken4,
+            DrawerBackground = Colors.Gray.Darken4,
+            Background = Colors.Shades.Black,
+            TextPrimary = "#e5eaf3",
+            // 左侧菜单字体颜色
+            DrawerText = "#e5eaf3",
+            TextSecondary = "#999",
+        },
+        PaletteDark = new PaletteDark()
+        {
+            Primary = Colors.Blue.Lighten1
+        },
+
+        LayoutProperties = new LayoutProperties()
+        {
+            DrawerWidthLeft = "260px",
+            DrawerWidthRight = "300px"
+        }
+    };
+}
+
+
+
+
+### MudBlazor NavMenu.razor 左侧菜单
+<MudNavMenu>
+    <MudNavLink Href="/" Match="NavLinkMatch.All">Dashboard</MudNavLink>
+    <MudNavLink Href="/servers" Match="NavLinkMatch.Prefix">Servers</MudNavLink>
+    <MudNavGroup Title="示例组件" Expanded="true">
+        <MudNavLink Href="" Match="NavLinkMatch.All">Home</MudNavLink>
+        <MudNavLink Href="counter" Match="NavLinkMatch.Prefix">Counter</MudNavLink>
+        <MudNavLink Href="weather" Match="NavLinkMatch.Prefix">Weather</MudNavLink>
+    </MudNavGroup>
+    <MudNavLink Href="/about" Match="NavLinkMatch.Prefix">About</MudNavLink>
+</MudNavMenu>

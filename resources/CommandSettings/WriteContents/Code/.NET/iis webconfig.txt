@@ -1,0 +1,16 @@
+### url参数过长
+  <system.web>
+    ...
+    <httpRuntime useFullyQualifiedRedirectUrl="true" maxRequestLength="1024000" maxQueryStringLength="1024000" executionTimeout="900"/>
+  </system.web>
+
+  <system.webServer>
+    <modules>
+      <add name="MyHttpModule" type="Game.Web.Common.MyHttpModule"/>
+    </modules>
+    <security>
+      <requestFiltering>
+        <requestLimits maxQueryString="2147483647" maxAllowedContentLength="2147483647" />
+      </requestFiltering>
+    </security>
+  </system.webServer>

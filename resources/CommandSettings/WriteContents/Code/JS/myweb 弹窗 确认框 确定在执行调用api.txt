@@ -1,1 +1,0 @@
-showConfirmBox('确定删除? 此操作无法撤销!', () => execute(this))

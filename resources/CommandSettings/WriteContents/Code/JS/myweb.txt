@@ -1,0 +1,85 @@
+### snippets  fetch button clicked loading animation
+function doSomething(parameter1, parameter2, executeBtn) {
+    showSpinner(executeBtn);
+    fetch('/CONTROLLER/ACTION', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ parameter1, parameter2 })
+    }).then(response => {
+        if (response.ok) {
+            var rspJson = response.json();
+            return rspJson;
+        } else {
+            showErrorBox("Failed to do something: " + response.json());
+        }
+    }).then(rspJson => {
+        showMsgBox(rspJson.message ? rspJson.message : "操作成功")
+    }).catch(error => {
+        showErrorBox(error);
+    }).finally(() => {
+        closeSpinner(executeBtn);
+    });
+}
+
+
+### snippets  layer 弹窗 提示框 - 正常信息 showMsgBox
+showMsgBox('操作成功', () => table.loadData());
+
+### snippets  layer 弹窗 提示框 - 错误信息
+showErrorBox("操作失败");
+
+### snippets  layer 弹窗 确认框 确定在执行调用api
+showConfirmBox('确定删除? 此操作无法撤销!', () => execute(this));
+
+
+### snippets* fetch api **execute** 通用请求指定API的方式
+const exeParams = {
+    'dataTableId': tableId,
+    'dataContent': `{"id": 1, "name": "张三"}`,
+    'dataExecuteUrl': '/api/CONTROLLER/ACTION',
+    'dataMethod': 'POST'
+};
+await execute(exeParams, callback, false);
+
+function callback(response) {
+    
+}
+
+
+
+### snippets* httpRequest 获取接口响应
+httpRequestAsync('/Home/Xxx', document.querySelector('form'), 'POST', body)
+.then(response => {
+    if (response.code !== 1) {
+        showErrorBox(response.errMsg ? response.errMsg : "操作失败")
+    } else {
+        document.querySelector('#tmplRenderResult .modal-body').innerHTML = rspJson.data;
+        tmplRenderResult.show();
+    }
+}).catch(error => {
+    showErrorBox(error);
+}).finally(() => {
+    closeSpinner(submitBtn);
+});
+
+### snippets* httpRequestData 获取数据
+httpRequestDataAsync("/Home/Xxx", document.querySelector('form')).then(records => {
+    if (records && records.length > 0) {
+        // 渲染表格或者其他处理数据的逻辑
+    }
+});
+
+### snippets* fetchData 获取数据 dataFilter过滤参数和finallyAction回调函数版本
+const dataFilter = null;
+const renderElementId = 'my-table';
+const finallyAction = null;
+const response = await fetchData(`/Home/GetTableInfo`, 'POST', dataFilter, renderElementId, finallyAction);
+if (response) {
+    if (response.code === 1) {
+        // 渲染表格或者其他处理数据的逻辑
+    } else {
+        showErrorBox(response.errMsg);
+    }
+}

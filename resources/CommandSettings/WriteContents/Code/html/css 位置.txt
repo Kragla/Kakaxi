@@ -1,0 +1,12 @@
+### 背景图片 - 铺满
+/*1.设置背景图片*/
+background-image: url("./bg.jpg");
+/*2.指定尺寸*/
+width: 100%;
+height: calc(100vh - 70px);
+/*3.背景图片同比放大到上面指定的尺寸*/
+background-size: cover; background-repeat: no-repeat;
+
+
+### 背景图片 - 居中
+background-position: 50% 0;

@@ -1,0 +1,14 @@
+### insert ele 添加元素 - 指定元素前
+specified.insertAdjacentHTML('beforebegin', anyHtml);
+
+### insert ele 添加元素 - 指定元素后
+specified.insertAdjacentHTML('afterend', anyHtml);
+
+### insert ele 添加元素 - 指定元素最后一个子节点后
+specified.insertAdjacentHTML('beforeend', anyHtml);
+
+### insert ele 添加元素 - 指定元素第一个子节点前
+specified.insertAdjacentHTML('afterbegin', anyHtml);
+
+### 调换/对调/改变相邻元素(ele1->ele2)位置
+ele2.insertAdjacentElement('afterend', ele1);

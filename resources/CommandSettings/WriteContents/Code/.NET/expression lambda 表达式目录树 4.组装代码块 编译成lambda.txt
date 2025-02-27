@@ -1,2 +1,0 @@
-var block = Expression.Block(new[] { result }, init, addCall, returnExpression, returnLableTarget);
-var lambda = Expression.Lambda<Func<DynamicParameters>>(block).Compile();

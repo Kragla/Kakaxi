@@ -1,11 +1,56 @@
-# 发送文本数据
+### 发送文本数据
 await socketForClient.SendAsync(Encoding.UTF8.GetBytes("ANYTHING YOU WANT TO SEND").AsMemory(), SocketFlags.None);
 
-# 接收文本: 字节数组 -> 文本
+### 接收文本: 字节数组 -> 文本
 var buffer = new byte[1024];
 var readedLength = await socketForClient.ReceiveAsync(buffer, SocketFlags.None);
 var receivedText = Encoding.UTF8.GetString(buffer, 0, readedLength).Replace("\0", string.Empty);
 
-# 接收文件: 字节数组 -> 写入文件
+### 接收文件: 字节数组 -> 写入文件
 using var fileStream = new FileStream(file, FileMode.Create);
 await fileStream.WriteAsync(buffer.AsMemory(0, realLength));
+
+### 发送/接收字节数组(AES加密解密)
+static bool aesEnabled = false;
+static async Task<int> MyReceiveAsync(Socket socket, byte[] buffer, string caller = "") {
+    caller = string.IsNullOrWhiteSpace(caller) ? "" : $"[{caller}]";
+    if (!aesEnabled) {
+        int len = await socket.ReceiveAsync(buffer);
+        System.Console.WriteLine($"MyReceiveAsync{caller}: received {len} bytes{Environment.NewLine}");
+        return len;
+    }
+    int readLength = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), SocketFlags.None);
+    var validBuffer = buffer.AsSpan(0, readLength).ToArray();
+    System.Console.WriteLine($"MyReceiveAsync{caller}: {readLength} bytes: {string.Join(',', validBuffer)}");
+
+    if (readLength > 20 && buffer.AsSpan(0, 20).SequenceEqual(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 22, 33, 44, 55, 66, 77, 88, 99, 101 })) {
+        var encryptedBuffer = buffer.AsSpan(20, readLength - 20).ToArray();
+        System.Console.WriteLine($"MyReceiveAsync{caller} - encryptedBuffer: {string.Join(',', encryptedBuffer)}");
+        var decrypted = await AesDecryptAsync(encryptedBuffer);
+        System.Console.WriteLine($"MyReceiveAsync{caller} - decrypted: {decrypted.Length} bytes: {string.Join(',', decrypted)}{Environment.NewLine}");
+
+        Array.Copy(decrypted, buffer, decrypted.Length);
+        return decrypted.Length;
+    }
+    System.Console.WriteLine($"MyReceiveAsync{caller}: Plain data received");
+    return readLength;
+}
+
+static async Task MySendAsync(Socket socket, byte[] buffer, int readLength, bool sendToClientOrServer = true, string caller = "") {
+    caller = string.IsNullOrWhiteSpace(caller) ? "" : $"[{caller}]";
+    if (!aesEnabled || !sendToClientOrServer) {
+        await socket.SendAsync(buffer.AsMemory(0, readLength));
+        System.Console.WriteLine($"MySendAsync{caller}: sent {readLength} bytes{Environment.NewLine}");
+        return;
+    }
+    var bufferArr = buffer.AsSpan(0, readLength).ToArray();
+    System.Console.WriteLine($"MySendAsync{caller} - buffer: {readLength} bytes: {string.Join(',', bufferArr)}");
+    var encrypted = await AesEncryptAsync(bufferArr);
+    System.Console.WriteLine($"MySendAsync{caller} - encrypted: {encrypted.Length} bytes: {string.Join(',', encrypted)}");
+    
+    byte[] newBuffer = new byte[encrypted.Length + 20];
+    Array.Copy(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 22, 33, 44, 55, 66, 77, 88, 99, 101 }, 0, newBuffer, 0, 20);
+    Array.Copy(encrypted, 0, newBuffer, 20, encrypted.Length);
+    System.Console.WriteLine($"MySendAsync{caller} - newBuffer: {encrypted.Length + 20} bytes: {string.Join(',', newBuffer)}{Environment.NewLine}");
+    await socket.SendAsync(newBuffer);
+}

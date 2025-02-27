@@ -1,0 +1,218 @@
+### 分布式锁 - Redis -CsRedis
+string lockKey = $"DistributedLock-Xxx";
+//释放锁的redis脚本
+string releaseLockScript = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+//获取锁(利用redis操作的线程安全特性, 并发时, 只有一个能获取成功, 其他的会循环等待500ms再尝试获取)
+do
+{
+    //set : key存在则失败,不存在才会成功,并且过期时间5秒
+    var success = RedisHelper.Instance.Set(lockKey, XVALUE, expireSeconds: 5, exists: RedisExistence.Nx);
+    if (success)
+    {
+        break;
+    }
+    await Task.Delay(TimeSpan.FromMilliseconds(500)); //休息1秒再尝试获取锁
+} while (true);
+try {
+    // 业务逻辑
+}
+finally
+{
+    // finally中确保释放锁
+    await RedisHelper.Instance.EvalAsync(releaseLockScript, lockKey, XVALUE);
+}
+
+### 分布式锁 - Redis -StackExchange.Redis
+using Microsoft.Extensions.Configuration;
+using StackExchange.Redis;
+using System;
+using System.Threading;
+
+namespace Redis
+{
+    public class RedisHelper
+    {
+        #region Fileds
+        private static string _redisConnection; 
+        private static int _db = 0;
+        private static ConnectionMultiplexer connection;
+        #endregion
+
+        #region Constructors
+        public RedisHelper(IConfiguration configuration)
+        {
+            _redisConnection = configuration["RedisConfigHost.Connection"]?.ToString() ?? "";
+        }
+
+        public static ConnectionMultiplexer CacheConnection
+        {
+            get
+            {
+                try
+                {
+                    if (connection == null || !connection.IsConnected)
+                    {
+                        connection = new Lazy<ConnectionMultiplexer>(() => ConnectionMultiplexer.Connect(_redisConnection)).Value;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return null;
+                }
+                return connection;
+            }
+        }
+        #endregion
+
+
+        #region Methons
+
+        /// <summary>
+        /// 缓存当前数据库
+        /// </summary>
+        public static IDatabase CacheRedis => CacheConnection.GetDatabase(_db);
+
+        /// <summary>
+        /// 新增单条值
+        /// </summary>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public static bool StringSet(string key, string values)
+        {
+            if (string.IsNullOrEmpty(key) && string.IsNullOrEmpty(values))
+                throw new AggregateException("values or is null");
+            return CacheRedis.StringSet(key, values);
+        }
+
+        /// <summary>
+        /// 查询单个key值
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public static RedisValue GetStringKey(string key)
+        {
+            return CacheRedis.StringGet(key);
+        }
+
+        /// <summary>
+        /// 判断key是否存储
+        /// </summary>
+        /// <param name="key">redis key</param>
+        /// <returns></returns>
+        public bool KeyExists(string key)
+        {
+            return CacheRedis.KeyExists(key);
+        }
+
+        /// <summary>
+        /// 删除单个key
+        /// </summary>
+        /// <param name="key">redis key</param>
+        /// <returns>是否删除成功</returns>
+        public bool KeyDelete(string key)
+        {
+            return CacheRedis.KeyDelete(key);
+        }
+
+
+        /// <summary>
+        /// redis 枷锁
+        /// </summary>
+        /// <param name="key">需要加锁的锁名</param>
+        /// <param name="expireTimeSeconds">该锁自动到期时间  如果没其他要求可设置为最大时常   该方式一定要手动解锁</param>
+        /// <exception cref="Exception"></exception>
+        #region 分布式锁
+        public static bool LockByRedis(string key, string values)
+        {
+            try
+            {
+                //expireTimeSeconds = expireTimeSeconds > 20 ? 10 : expireTimeSeconds;
+                //var data = TimeSpan.FromSeconds(expireTimeSeconds);
+                //var token = Environment.MachineName;              
+                //bool lockflag = CacheRedis.LockTake(key, Thread.CurrentThread.ManagedThreadId, TimeSpan.FromSeconds(expireTimeSeconds));
+
+                bool lockflag = CacheRedis.LockTake(key, values, TimeSpan.MaxValue);
+                if (!lockflag)
+                {
+                    return false;
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Redis加锁异常:原因{ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 解锁
+        /// </summary>
+        /// <param name="key">需要解锁的锁名</param>
+        /// <param name="values">需要解锁的值</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public static bool UnLockByRedis(string key, string valuse)
+        {
+            try
+            {
+                // Thread.CurrentThread.ManagedThreadId
+                //Environment.MachineName
+                return CacheRedis.LockRelease(key, valuse);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Redis加锁异常:原因{ex.Message}");
+            }
+        }
+
+        #endregion
+        #endregion
+
+
+        #region Utilities
+        #endregion
+    }
+}
+// 调用方式
+public static void Alternative()
+{
+    count++;
+    Console.WriteLine($"进入Alternative进入时间{DateTime.Now}");
+
+    var lockKey = "lockKey";
+    var lockValue = Guid.NewGuid().ToString("N");
+
+    bool result = Redis.RedisHelper.LockByRedis(lockKey, lockValue);
+    if (!result)
+    {
+        Console.WriteLine("没有抢到锁，这次请求停止");
+        return;
+    }
+
+    string data = Redis.RedisHelper.GetStringKey("Sum").ToString();
+    int sum = int.Parse(string.IsNullOrEmpty(data) ? "0" : data);
+
+    Console.WriteLine("读取到的sum是：" + sum.ToString());
+    if (sum <= 0)
+    {
+        Console.WriteLine("sum 小于0 直接插入");
+        Redis.RedisHelper.StringSet("Sum", count.ToString());
+        SendTimed();
+    }
+    else
+    {
+        Console.WriteLine("sum 大于0 开始判断；当前的count是：" + count.ToString());
+        if (sum < count)
+        {
+            Console.WriteLine("count大于sum开始插入");
+            Redis.RedisHelper.StringSet("Sum", count.ToString());
+            SendTimed();
+        }
+    }
+
+    var unlock = Redis.RedisHelper.UnLockByRedis(lockKey, lockValue);
+
+    Console.WriteLine($"进入Alternative结束时间{DateTime.Now}");
+
+
+}

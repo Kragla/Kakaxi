@@ -1,17 +1,19 @@
 from datetime import datetime
 import os
 import re
+import sys
 from client.file_utils import Uploader, get_path_separator
 from client.settings import PROJECTS, ENCODING, UPLOAD, PRIVATEKEY
 from client.ssh_conn import SSHConnection
 
 
 def main():
-    # args = sys.argv
-    # if len(args) == 1:
-    #     return
-    
-    # target_dir = args[1]
+    args = sys.argv
+    selected_index = -1
+    interacting = True
+    if (len(args) == 2):
+        interacting = False
+        selected_index = args[1]
 
     key_index_dic = {}
     key_index = 1
@@ -19,7 +21,9 @@ def main():
         key_index_dic.setdefault(str(key_index), key)
         print(f'[{key_index}] {key}')
         key_index += 1
-    selected_index = input('请选择要打包的项目:')
+    
+    if interacting:
+        selected_index = input('请选择要打包的项目:')
     
     # myapp.api
     app_name = key_index_dic[selected_index]
@@ -53,7 +57,8 @@ def main():
         'datetime_short': { 'value': datetime.now().strftime("%y%m%d%H%M"), 'ignore_source_when_empty': False },
     }
     variables = UPLOAD['variables']
-    fill_datacontext_by_user_input(variables, data_context, version_controller)
+
+    fill_datacontext_by_user_input(variables, data_context, version_controller, interacting)
 
     executingListFlowGroups = {
         "before_cmds": UPLOAD["before_cmds"],
@@ -130,21 +135,28 @@ def main():
 
 
 # 用户指定变量值
-def fill_datacontext_by_user_input(variables, data_context, version_controller):
+def fill_datacontext_by_user_input(variables, data_context, version_controller, interacting):
     for item in variables:
-        current = input(f'请输入{item["name"]}:')
-        if version_controller and not current and item["name"] == 'version name':
-            with open(version_controller, 'r', encoding=ENCODING) as file:
-                content = file.read()
-                matches = re.compile(r'dev\.v\d+\.\d+\.\d+').findall(content)
-                if matches:
-                    current = matches[-1]
-                    print(f'自动获取版本号: {current}')
+        current = input(f'请输入{item["name"]}:') if interacting else find_current_version(version_controller)
+        if not current and item["name"] == 'version name':
+            current = find_current_version(version_controller)
 
         data_context[item["name"]] = {
             'value': current,
             'ignore_source_when_empty': item['ignore_source_when_empty']
         }
+
+
+def find_current_version(version_controller):
+    current = ''
+    if version_controller:
+        with open(version_controller, 'r', encoding=ENCODING) as file:
+            content = file.read()
+            matches = re.compile(r'dev\.v\d+\.\d+\.\d+').findall(content)
+            if matches:
+                current = matches[-1]
+                print(f'自动获取版本号: {current}')
+    return current
 
 
 def execute_remote_cmds(cmds, data_context, host):

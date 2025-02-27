@@ -1,0 +1,4 @@
+### window resize 窗口大小发生变化
+window.addEventListener("resize", (event) => {
+    console.log("窗口大小发生变化");
+});

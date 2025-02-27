@@ -1,8 +1,0 @@
-#r "nuget: Dapper, 2.1.24"
-#r "nuget: MySql.Data, 8.0.31"
-
-using MySql.Data.MySqlClient;
-using Dapper;
-
-var conn = new MySqlConnection("Server=localhost;Database=xxx;Uid=root;Pwd=123456;");
-var user = conn.QueryFirstOrDefault<User>("SELECT * FROM user WHERE id = @id", new { id = 1 });

@@ -1,2 +1,0 @@
-/*color: var(--bs-blue);*/
-var(--bs-blue)

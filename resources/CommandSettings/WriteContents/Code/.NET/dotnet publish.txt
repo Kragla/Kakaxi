@@ -1,0 +1,43 @@
+### aot 发布单文件 AOT-ready-to-run linux-x64
+dotnet publish -r linux-x64 -c Release -o publish -p:PublishReadyToRun=true -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true
+
+
+### nuget 发布nuget包 1.配置
+<!--版本号-->
+<Version>1.0.0</Version>
+<!--添加该配置, 在编译时进行打包-->
+<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+<!--添加该配置才会生成注释文件, 默认无注释-->
+<GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+
+### nuget 发布nuget包 2.发布脚本
+$apikey = Get-Content -Path "D:\Secrets\nugetapikey.txt"
+Write-Host $apikey
+
+$currentDirectory = Get-Location
+Write-Host $currentDirectory
+#Write-Host "currentDirectory: $($currentDirectory)"
+
+# 读取项目文件内容
+$projectFileContent = Get-Content -Path "../ProjectDir/ProjectDir.csproj"
+
+# 使用正则表达式匹配版本号
+$versionPattern = '<Version>(.*?)<\/Version>'
+$versionMatch = [regex]::Match($projectFileContent, $versionPattern)
+if (!$versionMatch.Success) {
+	Write-Host "没有找到版本号"
+	exit 1
+}
+# 提取版本号值
+$version = $versionMatch.Groups[1].Value
+
+# 输出版本号
+Write-Host "版本号：$version"
+
+$utilsProjDir = Join-Path -Path $currentDirectory -ChildPath ../ProjectDir
+Set-Location $utilsProjDir
+dotnet build -c=Release
+dotnet nuget push ./bin/Release/ProjectDir.$version.nupkg -k $apikey -s https://api.nuget.org/v3/index.json --skip-duplicate
+Read-Host "Press any key to exit"
+#if ($reply -eq "EXIT") { exit; }

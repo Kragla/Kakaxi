@@ -1,0 +1,18 @@
+### 启动nginx
+Set-Location D:\Xxx\nginx-1.22.1\
+Start-Process .\nginx.exe
+
+### 运行一个powershell,并执行命令
+start powershell -noexit "cd d:/xxx/xx; xx.exe"
+
+### findstr tasklist查询应用 - 根据进程ID或者程序名
+tasklist | findstr "28480"
+
+### findstr netstat查询应用 - 根据端口查询进程ID
+netstat -ano | findstr "28480"
+
+### vmware - suspend挂起
+vmrun suspend "D:\Xxx\vm\MyCentos.vmx"
+
+### vmware - start启动
+vmrun -T ws start "D:\Xxx\vm\MyCentos.vmx"
